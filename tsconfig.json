@@ -1,0 +1,12 @@
+{
+	"compilerOptions": {
+		"target": "es6",
+		"module": "commonjs",
+		"sourceMap": true,
+		"esModuleInterop": true,
+		"allowSyntheticDefaultImports": true,		
+		"typeRoots": ["./typings/custom", "./node_modules/@types"]
+	},
+	"include": ["./src/**/*.ts", "./typings/custom"],
+  	"exclude": ["dist", "build", "node_modules"]
+}
