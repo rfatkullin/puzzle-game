@@ -8,6 +8,7 @@ import Puzzle from "./contracts/puzzle";
 import PuzzleViewMaker from "./view/puzzle_view_maker";
 import Config from "./config";
 import Point from "./contracts/point";
+import GamePuzzleMaker from "./view/game_puzzle_maker";
 
 export default class Main extends Phaser.Scene {
   private preload() {
@@ -62,11 +63,10 @@ export default class Main extends Phaser.Scene {
 
   private runGame(patternsAtlas: HTMLImageElement, targetImage: HTMLImageElement) {
     const puzzles: Puzzle[] = this.constructPuzzlePieces(patternsAtlas, targetImage);
+    const gamePuzzleMaker: GamePuzzleMaker = new GamePuzzleMaker(this.add, this.tweens);
 
     for (let puzzle of puzzles) {
-      const image: Phaser.GameObjects.Image = this.add.image(0, 0, puzzle.ViewTextureName);
-      image.setOrigin(0.5, 0.5);
-      image.setPosition(Math.random() * Config.CanvasWidth, Math.random() * Config.CanvasHeight);
+      gamePuzzleMaker.constructGamePuzzle(puzzle);
     }
   }
 
