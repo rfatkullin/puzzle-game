@@ -33,8 +33,8 @@ export default class Main extends Phaser.Scene {
     const puzzleViewMaker: PuzzleViewMaker = new PuzzleViewMaker(this.textures, patternsAtlas, targetImage);
     const gridMaker = new PuzzleGridMaker();
 
-    const widthOfGrid: number = targetImage.width / Config.PuzzleTotalSize;
-    const heightOfGrid: number = targetImage.height / Config.PuzzleTotalSize;
+    const widthOfGrid: number = targetImage.width / Config.InnerQuadSize;
+    const heightOfGrid: number = targetImage.height / Config.InnerQuadSize;
 
     const puzzlesGrid: PuzzleConnections[][] = gridMaker.make(heightOfGrid, widthOfGrid);
 
@@ -66,7 +66,7 @@ export default class Main extends Phaser.Scene {
     const gamePuzzleMaker: GamePuzzleMaker = new GamePuzzleMaker(this.add, this.tweens);
 
     for (let puzzle of puzzles) {
-      gamePuzzleMaker.constructGamePuzzle(puzzle);
+      gamePuzzleMaker.constructGamePuzzle(puzzle, true);
     }
   }
 

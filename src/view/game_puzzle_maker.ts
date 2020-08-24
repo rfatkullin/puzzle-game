@@ -10,12 +10,18 @@ export default class GamePuzzleMaker {
         this._tweensManager = newTweensManager;
     }
 
-    public constructGamePuzzle(puzzle: Puzzle): void {
-        const puzzlePosition = { x: Math.random() * Config.CanvasWidth, y: Math.random() * Config.CanvasHeight };
+    public constructGamePuzzle(puzzle: Puzzle, setRandomPositions: boolean = false): void {
+        let x: number = puzzle.OnTargetPosition.x;
+        let y: number = puzzle.OnTargetPosition.y;
+
+        if (setRandomPositions) {
+            x = Math.random() * Config.CanvasWidth;
+            y = Math.random() * Config.CanvasHeight;
+        }
 
         const puzzleSprite: Phaser.GameObjects.Image = this._gameObjectFactory.image(0, 0, puzzle.ViewTextureName)
             .setOrigin(0.5, 0.5)
-            .setPosition(puzzlePosition.x, puzzlePosition.y);
+            .setPosition(x, y);
 
         const rectangleShape = new Phaser.Geom.Rectangle(
             Config.BorderSize,
