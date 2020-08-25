@@ -19,9 +19,20 @@ export default class GamePuzzleMaker {
             y = Math.random() * Config.CanvasHeight;
         }
 
+        const puzzleGroup: Phaser.GameObjects.Group = this._gameObjectFactory.group();
+
+        const puzzleShadowSprite: Phaser.GameObjects.Image = this._gameObjectFactory.image(0, 0, puzzle.ViewTextureName)
+            .setOrigin(0.5, 0.5)
+            .setPosition(x + Config.PuzzleShadowOffset, y + Config.PuzzleShadowOffset)
+            .setAlpha(0.6)
+            .setTint(0);
+
         const puzzleSprite: Phaser.GameObjects.Image = this._gameObjectFactory.image(0, 0, puzzle.ViewTextureName)
             .setOrigin(0.5, 0.5)
             .setPosition(x, y);
+
+        puzzleGroup.add(puzzleSprite);
+        puzzleGroup.add(puzzleShadowSprite);
 
         const rectangleShape = new Phaser.Geom.Rectangle(
             Config.BorderSize,
@@ -31,28 +42,32 @@ export default class GamePuzzleMaker {
 
         puzzleSprite.setInteractive(rectangleShape, Phaser.Geom.Rectangle.Contains);
 
-        puzzleSprite.on('pointerover', () => this.onPointerEnter(puzzleSprite, this._tweensManager));
+        puzzleSprite.on('pointerover', () => this.onPointerEnter([puzzleSprite, puzzleShadowSprite], this._tweensManager));
 
-        puzzleSprite.on('pointerout', () => this.onPointerExit(puzzleSprite, this._tweensManager));
+        puzzleSprite.on('pointerout', () => this.onPointerExit([puzzleSprite, puzzleShadowSprite], this._tweensManager));
     }
 
-    private onPointerEnter(sprite: Phaser.GameObjects.Image, tweensManager: Phaser.Tweens.TweenManager): void {
-        tweensManager.add({
-            targets: sprite,
-            scale: { from: 1.0, to: Config.PuzzleScaleOnOver },
-            ease: Config.PuzzleScalingOutAnimzationEase,
-            duration: Config.PuzzleScalingOutAnimzationDuration
-        });
+    private onPointerEnter(sprites: Phaser.GameObjects.Image[], tweensManager: Phaser.Tweens.TweenManager): void {
+        for (let sprite of sprites) {
+            tweensManager.add({
+                targets: sprite,
+                scale: { from: 1.0, to: Config.PuzzleScaleOnOver },
+                ease: Config.PuzzleScalingOutAnimzationEase,
+                duration: Config.PuzzleScalingOutAnimzationDuration
+            });
+        }
     }
 
-    private onPointerExit(sprite: Phaser.GameObjects.Image, tweensManager: Phaser.Tweens.TweenManager): void {
-        tweensManager.killTweensOf(sprite);
+    private onPointerExit(sprites: Phaser.GameObjects.Image[], tweensManager: Phaser.Tweens.TweenManager): void {
+        for (let sprite of sprites) {
+            tweensManager.killTweensOf(sprite);
 
-        tweensManager.add({
-            targets: sprite,
-            scale: { from: sprite.scale, to: 1.0 },
-            ease: Config.PuzzleScalingInAnimzationEase,
-            duration: Config.PuzzleScalingInAnimzationDuration
-        });
+            tweensManager.add({
+                targets: sprite,
+                scale: { from: sprite.scale, to: 1.0 },
+                ease: Config.PuzzleScalingInAnimzationEase,
+                duration: Config.PuzzleScalingInAnimzationDuration
+            });
+        }
     }
 }

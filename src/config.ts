@@ -8,12 +8,13 @@ export default class Config {
 
     public static readonly PuzzleTotalSize: number = Config.InnerQuadSize + 2 * Config.BorderSize;
 
-    // Animation
+    public static readonly PuzzleShadowOffset: number = 3;
 
-    // Puzzle
+    // Puzzle Animation
     public static readonly PuzzleScaleOnOver: number = 1.2;
     public static readonly PuzzleScalingOutAnimzationDuration: number = 100;
     public static readonly PuzzleScalingInAnimzationDuration: number = 300;
     public static readonly PuzzleScalingOutAnimzationEase: string = 'Cubic.Out';
     public static readonly PuzzleScalingInAnimzationEase: string = 'Linear';
+
 }
