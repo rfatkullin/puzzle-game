@@ -8,6 +8,8 @@ export default class Config {
 
     public static readonly PuzzleTotalSize: number = Config.InnerQuadSize + 2 * Config.BorderSize;
 
+    // Puzzle shadow
+    public static readonly PuzzleShadowAlpha: number = 0.6;
     public static readonly PuzzleShadowOffset: number = 3;
 
     // Puzzle Animation

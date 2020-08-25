@@ -63,7 +63,7 @@ export default class Main extends Phaser.Scene {
 
   private runGame(patternsAtlas: HTMLImageElement, targetImage: HTMLImageElement) {
     const puzzles: Puzzle[] = this.constructPuzzlePieces(patternsAtlas, targetImage);
-    const gamePuzzleMaker: GamePuzzleMaker = new GamePuzzleMaker(this.add, this.tweens);
+    const gamePuzzleMaker: GamePuzzleMaker = new GamePuzzleMaker(this.add, this.tweens, this.input);
 
     for (let puzzle of puzzles) {
       gamePuzzleMaker.constructGamePuzzle(puzzle, true);
