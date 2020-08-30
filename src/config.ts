@@ -19,4 +19,11 @@ export default class Config {
     public static readonly PuzzleScalingOutAnimzationEase: string = 'Cubic.Out';
     public static readonly PuzzleScalingInAnimzationEase: string = 'Linear';
 
+    // Debug
+    public static readonly DebugLineStyle = { width: 2, color: 0xffffff };
+
+    public static readonly DebugDrawingConfigs = {
+        lineStyle: Config.DebugLineStyle
+    };
+
 }

@@ -1,5 +1,6 @@
 import PuzzleConnections from "../grid/puzzle_connections";
 import Point from "./point";
+import PuzzleView from "./puzzle_view";
 
 export default class Puzzle {
     public Id: number;
@@ -8,5 +9,5 @@ export default class Puzzle {
 
     public OnTargetPosition: Point;
 
-    public ViewTextureName: string;
+    public View: PuzzleView;
 }

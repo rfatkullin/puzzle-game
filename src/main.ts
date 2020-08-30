@@ -9,6 +9,8 @@ import PuzzleViewMaker from "./view/puzzle_view_maker";
 import Config from "./config";
 import Point from "./contracts/point";
 import GamePuzzleMaker from "./view/game_puzzle_maker";
+import PuzzleView from "./contracts/puzzle_view";
+import GameGrid from "./grid/game_grid";
 
 export default class Main extends Phaser.Scene {
   private preload() {
@@ -31,27 +33,24 @@ export default class Main extends Phaser.Scene {
 
   private constructPuzzlePieces(patternsAtlas: HTMLImageElement, targetImage: HTMLImageElement): Puzzle[] {
     const puzzleViewMaker: PuzzleViewMaker = new PuzzleViewMaker(this.textures, patternsAtlas, targetImage);
-    const gridMaker = new PuzzleGridMaker();
-
-    const widthOfGrid: number = targetImage.width / Config.InnerQuadSize;
-    const heightOfGrid: number = targetImage.height / Config.InnerQuadSize;
-
-    const puzzlesGrid: PuzzleConnections[][] = gridMaker.make(heightOfGrid, widthOfGrid);
+    const gamePuzzleMaker: GamePuzzleMaker = new GamePuzzleMaker(this.add, this.tweens, this.input);
+    const grid: GameGrid = this.getGrid(targetImage);
 
     const puzzles: Puzzle[] = [];
     let currentPuzzleId: number = 0;
 
-    for (let i = 0; i < heightOfGrid; ++i) {
-      for (let j = 0; j < widthOfGrid; ++j) {
+    for (let i = 0; i < grid.Height; ++i) {
+      for (let j = 0; j < grid.Width; ++j) {
         const puzzleId = currentPuzzleId++;
-        const puzzlePositionOnTarget: Point = new Point((j + 0.5) * Config.InnerQuadSize, (i + 0.5) * Config.InnerQuadSize);
-        const connections: PuzzleConnections = puzzlesGrid[i][j];
+        const positionOnTarget: Point = new Point((j + 0.5) * Config.InnerQuadSize, (i + 0.5) * Config.InnerQuadSize);
+        const puzzleTexture = puzzleViewMaker.generateTextureForPuzzle(puzzleId, positionOnTarget, grid.Connections[i][j])
+        const view = gamePuzzleMaker.constructGamePuzzle(puzzleId, positionOnTarget, puzzleTexture, true);
 
         const puzzle: Puzzle = {
           Id: puzzleId,
-          Connections: connections,
-          OnTargetPosition: puzzlePositionOnTarget,
-          ViewTextureName: puzzleViewMaker.generateTextureForPuzzle(puzzleId, puzzlePositionOnTarget, connections)
+          Connections: grid.Connections[i][j],
+          OnTargetPosition: positionOnTarget,
+          View: view
         }
 
         puzzles.push(puzzle);
@@ -61,13 +60,20 @@ export default class Main extends Phaser.Scene {
     return puzzles;
   }
 
-  private runGame(patternsAtlas: HTMLImageElement, targetImage: HTMLImageElement) {
-    const puzzles: Puzzle[] = this.constructPuzzlePieces(patternsAtlas, targetImage);
-    const gamePuzzleMaker: GamePuzzleMaker = new GamePuzzleMaker(this.add, this.tweens, this.input);
+  private getGrid(targetImage: HTMLImageElement): GameGrid {
+    const widthOfGrid: number = targetImage.width / Config.InnerQuadSize;
+    const heightOfGrid: number = targetImage.height / Config.InnerQuadSize;
+    const puzzlesGrid: PuzzleConnections[][] = new PuzzleGridMaker().make(heightOfGrid, widthOfGrid);
 
-    for (let puzzle of puzzles) {
-      gamePuzzleMaker.constructGamePuzzle(puzzle, true);
-    }
+    return {
+      Width: widthOfGrid,
+      Height: heightOfGrid,
+      Connections: puzzlesGrid
+    };
+  }
+
+  private runGame(patternsAtlas: HTMLImageElement, targetImage: HTMLImageElement) {
+    this.constructPuzzlePieces(patternsAtlas, targetImage);
   }
 
   private create() {
