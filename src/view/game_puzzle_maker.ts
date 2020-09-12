@@ -1,6 +1,7 @@
 import Config from "../config";
 import Point from "../contracts/point";
 import PuzzleView from "../contracts/puzzle_view";
+import IPuzzleMoved from "./ipuzzle_moved";
 
 export default class GamePuzzleMaker {
     private readonly _gameObjectFactory: Phaser.GameObjects.GameObjectFactory;
@@ -11,9 +12,12 @@ export default class GamePuzzleMaker {
 
     private readonly _debugGraphics: Phaser.GameObjects.Graphics;
 
+    private readonly _movedCallback: IPuzzleMoved;
+
     constructor(newGameObjectFactory: Phaser.GameObjects.GameObjectFactory,
         newTweensManager: Phaser.Tweens.TweenManager,
-        newInputManager: Phaser.Input.InputPlugin) {
+        newInputManager: Phaser.Input.InputPlugin,
+        movedCallback: IPuzzleMoved) {
         this._gameObjectFactory = newGameObjectFactory;
         this._tweensManager = newTweensManager;
         this._inputManager = newInputManager;
@@ -23,6 +27,11 @@ export default class GamePuzzleMaker {
 
         this._debugGraphics = this._gameObjectFactory.graphics(Config.DebugDrawingConfigs);
         this._debugGraphics.setDepth(10000);
+
+        this._movedCallback = movedCallback;
+
+        this.onDragEnd = this.onDragEnd.bind(this);
+        this._inputManager.on('dragend', this.onDragEnd);
     }
 
     public constructGamePuzzle(id: number, onTargetPosition: Point, texture: string, setRandomPositions: boolean = false): PuzzleView {
@@ -41,7 +50,6 @@ export default class GamePuzzleMaker {
 
         const puzzleSprite: Phaser.GameObjects.Image = this._gameObjectFactory.image(0, 0, texture)
             .setOrigin(0.5, 0.5)
-            .setPosition(x, y)
             .setName(id.toString());
 
         const rectangleShape = new Phaser.Geom.Rectangle(
@@ -50,24 +58,16 @@ export default class GamePuzzleMaker {
             Config.InnerQuadSize,
             Config.InnerQuadSize);
 
-        const puzzleShadowSpritePosition = this.getSpriteShadowPosition(puzzleSprite);
-        puzzleShadowSprite.setPosition(puzzleShadowSpritePosition.x, puzzleShadowSpritePosition.y);
-
         puzzleSprite.setInteractive(rectangleShape, Phaser.Geom.Rectangle.Contains);
 
         // TODO: check and fix performance issues.
         puzzleSprite.on('pointerover', () => this.onPointerEnter([puzzleSprite, puzzleShadowSprite], this._tweensManager));
         puzzleSprite.on('pointerout', () => this.onPointerExit([puzzleSprite, puzzleShadowSprite], this._tweensManager));
-        puzzleSprite.on('dragend', () => this._debugGraphics.clear());
 
         this._inputManager.setDraggable(puzzleSprite);
 
-        const puzzleView: PuzzleView = {
-            MainSprite: puzzleSprite,
-            ShadowSprite: puzzleShadowSprite,
-            Texture: texture,
-            OnTargetPosition: onTargetPosition
-        }
+        const puzzleView: PuzzleView = new PuzzleView(texture, onTargetPosition, puzzleSprite, puzzleShadowSprite);
+        puzzleView.setPosition({ x: x, y: y });
 
         this._puzzleViewByName[puzzleSprite.name] = puzzleView;
 
@@ -98,14 +98,18 @@ export default class GamePuzzleMaker {
         }
     }
 
-    private getSpriteShadowPosition(spritePosition: Point): Point {
-        return {
-            x: spritePosition.x + Config.PuzzleShadowOffset,
-            y: spritePosition.y + Config.PuzzleShadowOffset
-        };
+    private onDragEnd(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject, dropped): void {
+        this._debugGraphics.clear();
+
+        const puzzleId: string = gameObject.name;
+        if (!puzzleId) {
+            return;
+        }
+
+        this._movedCallback(+puzzleId, pointer);
     }
 
-    private onDrag(pointer: any, gameObject: Phaser.GameObjects.GameObject, dragX: number, dragY: number) {
+    private onDrag(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject) {
         if (gameObject == null || !gameObject.name) {
             return;
         }
@@ -115,12 +119,9 @@ export default class GamePuzzleMaker {
             return;
         }
 
-        const shadowPosition: Point = this.getSpriteShadowPosition(puzzleView.MainSprite);
+        puzzleView.setPosition(pointer);
 
-        puzzleView.MainSprite.setPosition(dragX, dragY);
-        puzzleView.ShadowSprite.setPosition(shadowPosition.x, shadowPosition.y);
-
-        this.drawLineToPositionOnDrag(puzzleView.MainSprite, puzzleView.OnTargetPosition);
+        this.drawLineToPositionOnDrag(puzzleView.MainSprite, puzzleView.TargetPosition);
     }
 
     private drawLineToPositionOnDrag(currentPosition: Point, onTargetPosition: Point) {

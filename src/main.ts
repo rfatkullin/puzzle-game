@@ -9,10 +9,12 @@ import PuzzleViewMaker from "./view/puzzle_view_maker";
 import Config from "./config";
 import Point from "./contracts/point";
 import GamePuzzleMaker from "./view/game_puzzle_maker";
-import PuzzleView from "./contracts/puzzle_view";
 import GameGrid from "./grid/game_grid";
 
 export default class Main extends Phaser.Scene {
+
+  private readonly _puzzles: Puzzle[] = [];
+
   private preload() {
     this.load.image("target", targetImage);
     this.load.image("background", backgroundImage);
@@ -29,14 +31,15 @@ export default class Main extends Phaser.Scene {
     };
 
     maskImg.src = this.textures.getBase64('patterns_atlas');
+
+    this.onPuzzleDragEnd = this.onPuzzleDragEnd.bind(this);
   }
 
   private constructPuzzlePieces(patternsAtlas: HTMLImageElement, targetImage: HTMLImageElement): Puzzle[] {
     const puzzleViewMaker: PuzzleViewMaker = new PuzzleViewMaker(this.textures, patternsAtlas, targetImage);
-    const gamePuzzleMaker: GamePuzzleMaker = new GamePuzzleMaker(this.add, this.tweens, this.input);
+    const gamePuzzleMaker: GamePuzzleMaker = new GamePuzzleMaker(this.add, this.tweens, this.input, this.onPuzzleDragEnd);
     const grid: GameGrid = this.getGrid(targetImage);
 
-    const puzzles: Puzzle[] = [];
     let currentPuzzleId: number = 0;
 
     for (let i = 0; i < grid.Height; ++i) {
@@ -46,18 +49,21 @@ export default class Main extends Phaser.Scene {
         const puzzleTexture = puzzleViewMaker.generateTextureForPuzzle(puzzleId, positionOnTarget, grid.Connections[i][j])
         const view = gamePuzzleMaker.constructGamePuzzle(puzzleId, positionOnTarget, puzzleTexture, true);
 
-        const puzzle: Puzzle = {
-          Id: puzzleId,
-          Connections: grid.Connections[i][j],
-          OnTargetPosition: positionOnTarget,
-          View: view
-        }
-
-        puzzles.push(puzzle);
+        const puzzle: Puzzle = new Puzzle(puzzleId, grid.Connections[i][j], positionOnTarget, view);
+        this._puzzles.push(puzzle);
       }
     }
 
-    return puzzles;
+    return this._puzzles;
+  }
+
+  private onPuzzleDragEnd(puzzleId: number, newPosition: { x: number, y: number }): void {
+    const puzzle: Puzzle = this._puzzles[puzzleId];
+    const distance: number = Phaser.Math.Distance.BetweenPoints(puzzle.TargetPosition, newPosition);
+
+    if (distance < Config.MinDistanceToAutoPut) {
+      puzzle.putOnTargetPosition();
+    }
   }
 
   private getGrid(targetImage: HTMLImageElement): GameGrid {

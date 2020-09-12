@@ -19,6 +19,8 @@ export default class Config {
     public static readonly PuzzleScalingOutAnimzationEase: string = 'Cubic.Out';
     public static readonly PuzzleScalingInAnimzationEase: string = 'Linear';
 
+    public static readonly MinDistanceToAutoPut: number = 30;
+
     // Debug
     public static readonly DebugLineStyle = { width: 2, color: 0xffffff };
 
