@@ -23,7 +23,12 @@ export default class GamePuzzleMaker {
         this._inputManager = newInputManager;
 
         this.onDrag = this.onDrag.bind(this);
+        this.onPointerEnter = this.onPointerEnter.bind(this);
+        this.onPointerExit = this.onPointerExit.bind(this);
+
         this._inputManager.on('drag', this.onDrag);
+        this._inputManager.on('pointerover', this.onPointerEnter);
+        this._inputManager.on('pointerout', this.onPointerExit);
 
         this._debugGraphics = this._gameObjectFactory.graphics(Config.DebugDrawingConfigs);
         this._debugGraphics.setDepth(10000);
@@ -59,11 +64,6 @@ export default class GamePuzzleMaker {
             Config.InnerQuadSize);
 
         puzzleSprite.setInteractive(rectangleShape, Phaser.Geom.Rectangle.Contains);
-
-        // TODO: check and fix performance issues.
-        puzzleSprite.on('pointerover', () => this.onPointerEnter([puzzleSprite, puzzleShadowSprite], this._tweensManager));
-        puzzleSprite.on('pointerout', () => this.onPointerExit([puzzleSprite, puzzleShadowSprite], this._tweensManager));
-
         this._inputManager.setDraggable(puzzleSprite);
 
         const puzzleView: PuzzleView = new PuzzleView(texture, onTargetPosition, puzzleSprite, puzzleShadowSprite);
@@ -74,31 +74,31 @@ export default class GamePuzzleMaker {
         return puzzleView;
     }
 
-    private onPointerEnter(sprites: Phaser.GameObjects.Image[], tweensManager: Phaser.Tweens.TweenManager): void {
-        for (let sprite of sprites) {
-            tweensManager.add({
-                targets: sprite,
-                scale: { from: 1.0, to: Config.PuzzleScaleOnOver },
-                ease: Config.PuzzleScalingOutAnimzationEase,
-                duration: Config.PuzzleScalingOutAnimzationDuration
-            });
+    private onPointerEnter(pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[]): void {
+        for (let gameObject of gameObjects) {
+            const puzzleId: string = gameObject.name;
+            if (!puzzleId) {
+                return;
+            }
+
+            const puzzleView: PuzzleView = this._puzzleViewByName[puzzleId];
+            puzzleView.startZoomInAnimation(this._tweensManager);
         }
     }
 
-    private onPointerExit(sprites: Phaser.GameObjects.Image[], tweensManager: Phaser.Tweens.TweenManager): void {
-        for (let sprite of sprites) {
-            tweensManager.killTweensOf(sprite);
+    private onPointerExit(pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[]): void {
+        for (let gameObject of gameObjects) {
+            const puzzleId: string = gameObject.name;
+            if (!puzzleId) {
+                return;
+            }
 
-            tweensManager.add({
-                targets: sprite,
-                scale: { from: sprite.scale, to: 1.0 },
-                ease: Config.PuzzleScalingInAnimzationEase,
-                duration: Config.PuzzleScalingInAnimzationDuration
-            });
+            const puzzleView: PuzzleView = this._puzzleViewByName[puzzleId];
+            puzzleView.startZoomOutAnimation(this._tweensManager);
         }
     }
 
-    private onDragEnd(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject, dropped): void {
+    private onDragEnd(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject): void {
         this._debugGraphics.clear();
 
         const puzzleId: string = gameObject.name;

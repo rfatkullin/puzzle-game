@@ -24,6 +24,37 @@ export default class PuzzleView {
         this.ShadowSprite.setPosition(shadowPosition.x, shadowPosition.y);
     }
 
+    public startZoomInAnimation(tweensManager: Phaser.Tweens.TweenManager): void {
+        PuzzleView.startScaleOutTween(this.MainSprite, tweensManager);
+        PuzzleView.startScaleOutTween(this.ShadowSprite, tweensManager);
+    }
+
+    public startZoomOutAnimation(tweensManager: Phaser.Tweens.TweenManager): void {
+        tweensManager.killTweensOf(this.MainSprite);
+        tweensManager.killTweensOf(this.ShadowSprite);
+
+        PuzzleView.startScaleInTween(this.MainSprite, tweensManager);
+        PuzzleView.startScaleInTween(this.ShadowSprite, tweensManager);
+    }
+
+    private static startScaleOutTween(sprite: Phaser.GameObjects.Image, tweensManager: Phaser.Tweens.TweenManager): void {
+        tweensManager.add({
+            targets: sprite,
+            scale: { from: 1.0, to: Config.PuzzleScaleOnOver },
+            ease: Config.PuzzleScalingOutAnimzationEase,
+            duration: Config.PuzzleScalingOutAnimzationDuration
+        });
+    }
+
+    private static startScaleInTween(sprite: Phaser.GameObjects.Image, tweensManager: Phaser.Tweens.TweenManager): void {
+        tweensManager.add({
+            targets: sprite,
+            scale: { from: sprite.scale, to: 1.0 },
+            ease: Config.PuzzleScalingInAnimzationEase,
+            duration: Config.PuzzleScalingInAnimzationDuration
+        });
+    }
+
     private static getSpriteShadowPosition(spritePosition: Point): Point {
         return {
             x: spritePosition.x + Config.PuzzleShadowOffset,
