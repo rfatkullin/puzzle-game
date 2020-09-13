@@ -22,21 +22,18 @@ export default class GamePuzzleMaker {
         this._tweensManager = newTweensManager;
         this._inputManager = newInputManager;
 
+        this.onDragStart = this.onDragStart.bind(this);
         this.onDrag = this.onDrag.bind(this);
-        this.onPointerEnter = this.onPointerEnter.bind(this);
-        this.onPointerExit = this.onPointerExit.bind(this);
+        this.onDragEnd = this.onDragEnd.bind(this);
 
+        this._inputManager.on('dragstart', this.onDragStart);
         this._inputManager.on('drag', this.onDrag);
-        this._inputManager.on('pointerover', this.onPointerEnter);
-        this._inputManager.on('pointerout', this.onPointerExit);
+        this._inputManager.on('dragend', this.onDragEnd);
 
         this._debugGraphics = this._gameObjectFactory.graphics(Config.DebugDrawingConfigs);
         this._debugGraphics.setDepth(10000);
 
         this._movedCallback = movedCallback;
-
-        this.onDragEnd = this.onDragEnd.bind(this);
-        this._inputManager.on('dragend', this.onDragEnd);
     }
 
     public constructGamePuzzle(id: number, targetPosition: Point, texture: string, setRandomPositions: boolean = false): PuzzleView {
@@ -74,28 +71,13 @@ export default class GamePuzzleMaker {
         return puzzleView;
     }
 
-    private onPointerEnter(pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[]): void {
-        for (let gameObject of gameObjects) {
-            const puzzleId: string = gameObject.name;
-            if (!puzzleId) {
-                return;
-            }
-
-            const puzzleView: PuzzleView = this._puzzleViewByName[puzzleId];
-            puzzleView.startZoomInAnimation(this._tweensManager);
+    private onDragStart(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject): void {
+        const puzzleId: string = gameObject.name;
+        if (!puzzleId) {
+            return;
         }
-    }
 
-    private onPointerExit(pointer: Phaser.Input.Pointer, gameObjects: Phaser.GameObjects.GameObject[]): void {
-        for (let gameObject of gameObjects) {
-            const puzzleId: string = gameObject.name;
-            if (!puzzleId) {
-                return;
-            }
-
-            const puzzleView: PuzzleView = this._puzzleViewByName[puzzleId];
-            puzzleView.startZoomOutAnimation(this._tweensManager);
-        }
+        this._puzzleViewByName[puzzleId].startZoomInAnimation(this._tweensManager);
     }
 
     private onDragEnd(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject): void {
@@ -106,6 +88,7 @@ export default class GamePuzzleMaker {
             return;
         }
 
+        this._puzzleViewByName[puzzleId].startZoomOutAnimation(this._tweensManager)
         this._movedCallback(+puzzleId, pointer);
     }
 
