@@ -21,6 +21,9 @@ export default class Config {
 
     public static readonly MinDistanceToAutoPut: number = 60;
 
+    public static readonly FieldShadowAlpha: number = 0.2;
+    public static readonly FieldShadowTint: number = 0x00E819;
+
     // Debug
     public static readonly DebugLineStyle = { width: 2, color: 0xffffff };
 

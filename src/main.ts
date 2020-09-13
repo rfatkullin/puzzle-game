@@ -1,5 +1,6 @@
 import Phaser from "phaser";
 import targetImage from "./assets/target.png";
+import fieldShadowImage from "./assets/field_shadow.png";
 import patternsAtlasSourceImage from "./assets/patterns_atlas.png";
 import backgroundImage from "./assets/background.jpg";
 import PuzzleConnections from "./grid/puzzle_connections";
@@ -19,6 +20,7 @@ export default class Main extends Phaser.Scene {
     this.load.image("target", targetImage);
     this.load.image("background", backgroundImage);
     this.load.image("patterns_atlas", patternsAtlasSourceImage);
+    this.load.image("field_shadow", fieldShadowImage);
   }
 
   private loadImages(callback: (maskImg: HTMLImageElement, backgroundImage: HTMLImageElement) => void) {
@@ -41,6 +43,8 @@ export default class Main extends Phaser.Scene {
     const grid: GameGrid = this.getGrid(targetImageHtmlImage);
     const offsetToCenter: Point = this.getOffsetsToCenter(targetImageHtmlImage);
 
+    this.showFieldShadow(offsetToCenter, targetImageHtmlImage);
+
     let currentPuzzleId: number = 0;
 
     for (let i = 0; i < grid.Height; ++i) {
@@ -48,7 +52,7 @@ export default class Main extends Phaser.Scene {
         const puzzleId = currentPuzzleId++;
         const positionOnTarget: Point = new Point((j + 0.5) * Config.InnerQuadSize, (i + 0.5) * Config.InnerQuadSize);
         const puzzleTexture = puzzleViewMaker.generateTextureForPuzzle(puzzleId, positionOnTarget, grid.Connections[i][j])
-        
+
         const positionOnCanvas: Point = new Point(positionOnTarget.x + offsetToCenter.x, positionOnTarget.y + offsetToCenter.y);
         const view = gamePuzzleMaker.constructGamePuzzle(puzzleId, positionOnCanvas, puzzleTexture, true);
 
@@ -58,6 +62,15 @@ export default class Main extends Phaser.Scene {
     }
 
     return this._puzzles;
+  }
+
+  private showFieldShadow(position: Point, targetImageHtmlImage: HTMLImageElement): void {
+    const background: Phaser.GameObjects.Image = this.add.image(0, 0, 'field_shadow')
+      .setOrigin(0, 0)
+      .setPosition(position.x, position.y)
+      .setScale(targetImageHtmlImage.width, targetImageHtmlImage.height)
+      .setTint(Config.FieldShadowTint)
+      .setAlpha(Config.FieldShadowAlpha);
   }
 
   private getOffsetsToCenter(targetImageSize: { width: number, height: number }): Point {
