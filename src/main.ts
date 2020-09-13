@@ -1,5 +1,5 @@
 import Phaser from "phaser";
-import targetImage from "./assets/car.png";
+import targetImage from "./assets/target.png";
 import patternsAtlasSourceImage from "./assets/patterns_atlas.png";
 import backgroundImage from "./assets/background.jpg";
 import PuzzleConnections from "./grid/puzzle_connections";
