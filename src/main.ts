@@ -35,11 +35,11 @@ export default class Main extends Phaser.Scene {
     this.onPuzzleDragEnd = this.onPuzzleDragEnd.bind(this);
   }
 
-  private constructPuzzlePieces(patternsAtlas: HTMLImageElement, targetImage: HTMLImageElement): Puzzle[] {
-    const puzzleViewMaker: PuzzleViewMaker = new PuzzleViewMaker(this.textures, patternsAtlas, targetImage);
+  private constructPuzzlePieces(patternsAtlasHtmlImage: HTMLImageElement, targetImageHtmlImage: HTMLImageElement): Puzzle[] {
+    const puzzleViewMaker: PuzzleViewMaker = new PuzzleViewMaker(this.textures, patternsAtlasHtmlImage, targetImageHtmlImage);
     const gamePuzzleMaker: GamePuzzleMaker = new GamePuzzleMaker(this.add, this.tweens, this.input, this.onPuzzleDragEnd);
-    const grid: GameGrid = this.getGrid(targetImage);
-    const offsetToCenter: Point = this.getOffsetsToCenter(targetImage);
+    const grid: GameGrid = this.getGrid(targetImageHtmlImage);
+    const offsetToCenter: Point = this.getOffsetsToCenter(targetImageHtmlImage);
 
     let currentPuzzleId: number = 0;
 
