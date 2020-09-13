@@ -39,6 +39,7 @@ export default class Main extends Phaser.Scene {
     const puzzleViewMaker: PuzzleViewMaker = new PuzzleViewMaker(this.textures, patternsAtlas, targetImage);
     const gamePuzzleMaker: GamePuzzleMaker = new GamePuzzleMaker(this.add, this.tweens, this.input, this.onPuzzleDragEnd);
     const grid: GameGrid = this.getGrid(targetImage);
+    const offsetToCenter: Point = this.getOffsetsToCenter(targetImage);
 
     let currentPuzzleId: number = 0;
 
@@ -47,14 +48,23 @@ export default class Main extends Phaser.Scene {
         const puzzleId = currentPuzzleId++;
         const positionOnTarget: Point = new Point((j + 0.5) * Config.InnerQuadSize, (i + 0.5) * Config.InnerQuadSize);
         const puzzleTexture = puzzleViewMaker.generateTextureForPuzzle(puzzleId, positionOnTarget, grid.Connections[i][j])
-        const view = gamePuzzleMaker.constructGamePuzzle(puzzleId, positionOnTarget, puzzleTexture, true);
+        
+        const positionOnCanvas: Point = new Point(positionOnTarget.x + offsetToCenter.x, positionOnTarget.y + offsetToCenter.y);
+        const view = gamePuzzleMaker.constructGamePuzzle(puzzleId, positionOnCanvas, puzzleTexture, true);
 
-        const puzzle: Puzzle = new Puzzle(puzzleId, grid.Connections[i][j], positionOnTarget, view);
+        const puzzle: Puzzle = new Puzzle(puzzleId, grid.Connections[i][j], positionOnCanvas, view);
         this._puzzles.push(puzzle);
       }
     }
 
     return this._puzzles;
+  }
+
+  private getOffsetsToCenter(targetImageSize: { width: number, height: number }): Point {
+    return {
+      x: (Config.CanvasWidth - targetImageSize.width) / 2,
+      y: (Config.CanvasHeight - targetImageSize.height) / 2,
+    }
   }
 
   private onPuzzleDragEnd(puzzleId: number, newPosition: { x: number, y: number }): void {

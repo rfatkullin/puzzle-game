@@ -39,9 +39,9 @@ export default class GamePuzzleMaker {
         this._inputManager.on('dragend', this.onDragEnd);
     }
 
-    public constructGamePuzzle(id: number, onTargetPosition: Point, texture: string, setRandomPositions: boolean = false): PuzzleView {
-        let x: number = onTargetPosition.x;
-        let y: number = onTargetPosition.y;
+    public constructGamePuzzle(id: number, targetPosition: Point, texture: string, setRandomPositions: boolean = false): PuzzleView {
+        let x: number = targetPosition.x;
+        let y: number = targetPosition.y;
 
         if (setRandomPositions) {
             x = Math.random() * Config.CanvasWidth;
@@ -66,7 +66,7 @@ export default class GamePuzzleMaker {
         puzzleSprite.setInteractive(rectangleShape, Phaser.Geom.Rectangle.Contains);
         this._inputManager.setDraggable(puzzleSprite);
 
-        const puzzleView: PuzzleView = new PuzzleView(texture, onTargetPosition, puzzleSprite, puzzleShadowSprite);
+        const puzzleView: PuzzleView = new PuzzleView(texture, targetPosition, puzzleSprite, puzzleShadowSprite);
         puzzleView.setPosition({ x: x, y: y });
 
         this._puzzleViewByName[puzzleSprite.name] = puzzleView;
