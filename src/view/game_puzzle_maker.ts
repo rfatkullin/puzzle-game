@@ -1,7 +1,6 @@
 import Config from "../config";
 import Point from "../contracts/point";
 import PuzzleView from "../contracts/puzzle_view";
-import IPuzzleMoved from "./ipuzzle_moved";
 
 export default class GamePuzzleMaker {
     private readonly _gameObjectFactory: Phaser.GameObjects.GameObjectFactory;
@@ -12,12 +11,9 @@ export default class GamePuzzleMaker {
 
     private readonly _debugGraphics: Phaser.GameObjects.Graphics;
 
-    private readonly _movedCallback: IPuzzleMoved;
-
     constructor(newGameObjectFactory: Phaser.GameObjects.GameObjectFactory,
         newTweensManager: Phaser.Tweens.TweenManager,
-        newInputManager: Phaser.Input.InputPlugin,
-        movedCallback: IPuzzleMoved) {
+        newInputManager: Phaser.Input.InputPlugin) {
         this._gameObjectFactory = newGameObjectFactory;
         this._tweensManager = newTweensManager;
         this._inputManager = newInputManager;
@@ -32,8 +28,6 @@ export default class GamePuzzleMaker {
 
         this._debugGraphics = this._gameObjectFactory.graphics(Config.DebugDrawingConfigs);
         this._debugGraphics.setDepth(10000);
-
-        this._movedCallback = movedCallback;
     }
 
     public constructGamePuzzle(id: number, targetPosition: Point, texture: string, setRandomPositions: boolean = false): PuzzleView {
@@ -63,7 +57,7 @@ export default class GamePuzzleMaker {
         puzzleSprite.setInteractive(rectangleShape, Phaser.Geom.Rectangle.Contains);
         this._inputManager.setDraggable(puzzleSprite);
 
-        const puzzleView: PuzzleView = new PuzzleView(texture, targetPosition, puzzleSprite, puzzleShadowSprite);
+        const puzzleView: PuzzleView = new PuzzleView(id, texture, targetPosition, puzzleSprite, puzzleShadowSprite, this._tweensManager);
         puzzleView.setPosition({ x: x, y: y });
 
         this._puzzleViewByName[puzzleSprite.name] = puzzleView;
@@ -77,7 +71,7 @@ export default class GamePuzzleMaker {
             return;
         }
 
-        this._puzzleViewByName[puzzleId].startZoomInAnimation(this._tweensManager);
+        this._puzzleViewByName[puzzleId].onDragStart(pointer);
     }
 
     private onDragEnd(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject): void {
@@ -88,8 +82,7 @@ export default class GamePuzzleMaker {
             return;
         }
 
-        this._puzzleViewByName[puzzleId].startZoomOutAnimation(this._tweensManager)
-        this._movedCallback(+puzzleId, pointer);
+        this._puzzleViewByName[puzzleId].onDragEnd(pointer);
     }
 
     private onDrag(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject) {

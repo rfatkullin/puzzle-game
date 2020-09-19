@@ -1,8 +1,12 @@
 import Phaser from "phaser";
+
 import targetImage from "./assets/target.png";
 import fieldShadowImage from "./assets/field_shadow.png";
 import patternsAtlasSourceImage from "./assets/patterns_atlas.png";
 import backgroundImage from "./assets/background.jpg";
+
+import clickSound from "./assets/sound/click.wav";
+
 import PuzzleConnections from "./grid/puzzle_connections";
 import PuzzleGridMaker from "./grid/grid_maker";
 import Puzzle from "./contracts/puzzle";
@@ -11,16 +15,30 @@ import Config from "./config";
 import Point from "./contracts/point";
 import GamePuzzleMaker from "./view/game_puzzle_maker";
 import GameGrid from "./grid/game_grid";
+import SoundFx from './fx/sound_fx';
+import PuzzleView from "./contracts/puzzle_view";
+import PuzzleDragDetails from "./contracts/events/puzzle_drag_details";
 
 export default class Main extends Phaser.Scene {
 
   private readonly _puzzles: Puzzle[] = [];
+  private _soundFx: SoundFx;
+
+  public constructor(config)
+  {
+    super(config);
+
+    this.runGame = this.runGame.bind(this);
+    this.onPuzzleDrag = this.onPuzzleDrag.bind(this);
+  }
 
   private preload() {
     this.load.image("target", targetImage);
     this.load.image("background", backgroundImage);
     this.load.image("patterns_atlas", patternsAtlasSourceImage);
     this.load.image("field_shadow", fieldShadowImage);
+
+    this.load.audio('click', clickSound);
   }
 
   private loadImages(callback: (maskImg: HTMLImageElement, backgroundImage: HTMLImageElement) => void) {
@@ -33,13 +51,11 @@ export default class Main extends Phaser.Scene {
     };
 
     maskImg.src = this.textures.getBase64('patterns_atlas');
-
-    this.onPuzzleDragEnd = this.onPuzzleDragEnd.bind(this);
   }
 
   private constructPuzzlePieces(patternsAtlasHtmlImage: HTMLImageElement, targetImageHtmlImage: HTMLImageElement): Puzzle[] {
     const puzzleViewMaker: PuzzleViewMaker = new PuzzleViewMaker(this.textures, patternsAtlasHtmlImage, targetImageHtmlImage);
-    const gamePuzzleMaker: GamePuzzleMaker = new GamePuzzleMaker(this.add, this.tweens, this.input, this.onPuzzleDragEnd);
+    const gamePuzzleMaker: GamePuzzleMaker = new GamePuzzleMaker(this.add, this.tweens, this.input);
     const grid: GameGrid = this.getGrid(targetImageHtmlImage);
     const offsetToCenter: Point = this.getOffsetsToCenter(targetImageHtmlImage);
 
@@ -54,8 +70,10 @@ export default class Main extends Phaser.Scene {
         const puzzleTexture = puzzleViewMaker.generateTextureForPuzzle(puzzleId, positionOnTarget, grid.Connections[i][j])
 
         const positionOnCanvas: Point = new Point(positionOnTarget.x + offsetToCenter.x, positionOnTarget.y + offsetToCenter.y);
-        const view = gamePuzzleMaker.constructGamePuzzle(puzzleId, positionOnCanvas, puzzleTexture, true);
+        const view: PuzzleView = gamePuzzleMaker.constructGamePuzzle(puzzleId, positionOnCanvas, puzzleTexture, true);
 
+        view.onDrag.subscribe(this.onPuzzleDrag);
+        
         const puzzle: Puzzle = new Puzzle(puzzleId, grid.Connections[i][j], positionOnCanvas, view);
         this._puzzles.push(puzzle);
       }
@@ -80,8 +98,17 @@ export default class Main extends Phaser.Scene {
     }
   }
 
-  private onPuzzleDragEnd(puzzleId: number, newPosition: { x: number, y: number }): void {
-    const puzzle: Puzzle = this._puzzles[puzzleId];
+  private onPuzzleDrag(puzzleView: PuzzleView, eventDetails: PuzzleDragDetails): void {
+    if (eventDetails.Event == 'end')
+    {
+      this.onPuzzleDragEnd(puzzleView, eventDetails.Position);
+    }
+
+    this._soundFx.onPuzzleDrag(eventDetails.Event);
+  }
+
+  private onPuzzleDragEnd(puzzleView: PuzzleView, newPosition: Point): void {
+    const puzzle: Puzzle = this._puzzles[puzzleView.PuzzleId];
     const distance: number = Phaser.Math.Distance.BetweenPoints(puzzle.TargetPosition, newPosition);
 
     if (distance < Config.MinDistanceToAutoPut) {
@@ -102,6 +129,8 @@ export default class Main extends Phaser.Scene {
   }
 
   private runGame(patternsAtlas: HTMLImageElement, targetImage: HTMLImageElement) {
+    this._soundFx = new SoundFx(this.sound);
+
     this.constructPuzzlePieces(patternsAtlas, targetImage);
   }
 
@@ -109,8 +138,7 @@ export default class Main extends Phaser.Scene {
     const background: Phaser.GameObjects.Image = this.add.image(0, 0, 'background')
       .setOrigin(0, 0)
       .setAlpha(0.5);
-
-    this.runGame = this.runGame.bind(this);
+    
     this.loadImages(this.runGame);
   }
 }
