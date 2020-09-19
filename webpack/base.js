@@ -8,8 +8,13 @@ module.exports = {
   entry: {
     app: [
       path.resolve(__dirname, '../src/main.ts')
-    ],
-    vendor: ['phaser']
+    ]
+  },
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      automaticNameDelimiter: '.'
+    }
   },
   devtool: "eval-source-map",
   module: {
