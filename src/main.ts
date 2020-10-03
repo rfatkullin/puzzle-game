@@ -10,7 +10,7 @@ import clickSound from "./assets/sound/click.wav";
 import PuzzleConnections from "./grid/puzzle_connections";
 import PuzzleGridMaker from "./grid/grid_maker";
 import Puzzle from "./contracts/puzzle";
-import PuzzleViewMaker from "./view/puzzle_view_maker";
+import PuzzleTextureMaker from "./view/puzzle_texture_maker";
 import Config from "./config";
 import Point from "./contracts/point";
 import GamePuzzleMaker from "./view/game_puzzle_maker";
@@ -54,7 +54,7 @@ export default class Main extends Phaser.Scene {
   }
 
   private constructPuzzlePieces(patternsAtlasHtmlImage: HTMLImageElement, targetImageHtmlImage: HTMLImageElement): Puzzle[] {
-    const puzzleViewMaker: PuzzleViewMaker = new PuzzleViewMaker(this.textures, patternsAtlasHtmlImage, targetImageHtmlImage);
+    const puzzleViewMaker: PuzzleTextureMaker = new PuzzleTextureMaker(this.textures, patternsAtlasHtmlImage, targetImageHtmlImage);
     const gamePuzzleMaker: GamePuzzleMaker = new GamePuzzleMaker(this.add, this.tweens, this.input);
     const grid: GameGrid = this.getGrid(targetImageHtmlImage);
     const offsetToCenter: Point = this.getOffsetsToCenter(targetImageHtmlImage);

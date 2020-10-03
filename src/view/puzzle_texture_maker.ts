@@ -3,7 +3,7 @@ import PuzzleConnections from "../grid/puzzle_connections";
 import Point from "../contracts/point";
 import Config from "../config";
 
-export default class PuzzleViewMaker {
+export default class PuzzleTextureMaker {
     private readonly _sizeOfInnerPartOfPiece: number = Config.InnerQuadSize;
     private readonly _offset: number = Config.BorderSize;
     private readonly _pieceSize: number = Config.PuzzleTotalSize;
