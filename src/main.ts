@@ -13,19 +13,22 @@ import Puzzle from "./contracts/puzzle";
 import PuzzleTextureMaker from "./view/puzzle_texture_maker";
 import Config from "./config";
 import Point from "./contracts/point";
-import GamePuzzleMaker from "./view/game_puzzle_maker";
+import PuzzleViewMaker from "./view/puzzle_view_maker";
 import GameGrid from "./grid/game_grid";
 import SoundFx from './fx/sound_fx';
 import PuzzleView from "./contracts/puzzle_view";
 import PuzzleDragDetails from "./contracts/events/puzzle_drag_details";
+import PuzzlePiece from "./contracts/puzzle_piece";
+import PuzzleMaker from "./view/puzzle_maker";
 
 export default class Main extends Phaser.Scene {
 
   private readonly _puzzles: Puzzle[] = [];
+
+  private _puzzleMaker: PuzzleMaker;
   private _soundFx: SoundFx;
 
-  public constructor(config)
-  {
+  public constructor(config) {
     super(config);
 
     this.runGame = this.runGame.bind(this);
@@ -53,33 +56,36 @@ export default class Main extends Phaser.Scene {
     maskImg.src = this.textures.getBase64('patterns_atlas');
   }
 
-  private constructPuzzlePieces(patternsAtlasHtmlImage: HTMLImageElement, targetImageHtmlImage: HTMLImageElement): Puzzle[] {
-    const puzzleViewMaker: PuzzleTextureMaker = new PuzzleTextureMaker(this.textures, patternsAtlasHtmlImage, targetImageHtmlImage);
-    const gamePuzzleMaker: GamePuzzleMaker = new GamePuzzleMaker(this.add, this.tweens, this.input);
-    const grid: GameGrid = this.getGrid(targetImageHtmlImage);
-    const offsetToCenter: Point = this.getOffsetsToCenter(targetImageHtmlImage);
+  private constructPuzzlePieces(grid: GameGrid, offsetToCenter: Point): PuzzlePiece[] {
+    const pieces: PuzzlePiece[] = [];
 
-    this.showFieldShadow(offsetToCenter, targetImageHtmlImage);
-
-    let currentPuzzleId: number = 0;
-
+    let id: number = 0;
     for (let i = 0; i < grid.Height; ++i) {
       for (let j = 0; j < grid.Width; ++j) {
-        const puzzleId = currentPuzzleId++;
-        const positionOnTarget: Point = new Point((j + 0.5) * Config.InnerQuadSize, (i + 0.5) * Config.InnerQuadSize);
-        const puzzleTexture = puzzleViewMaker.generateTextureForPuzzle(puzzleId, positionOnTarget, grid.Connections[i][j])
 
-        const positionOnCanvas: Point = new Point(positionOnTarget.x + offsetToCenter.x, positionOnTarget.y + offsetToCenter.y);
-        const view: PuzzleView = gamePuzzleMaker.constructGamePuzzle(puzzleId, positionOnCanvas, puzzleTexture, true);
+        const targetImagePosition: Point = new Point((j + 0.5) * Config.InnerQuadSize, (i + 0.5) * Config.InnerQuadSize);
+        const fieldPosition = new Point(targetImagePosition.x + offsetToCenter.x, targetImagePosition.y + offsetToCenter.y);
 
-        view.onDrag.subscribe(this.onPuzzleDrag);
-        
-        const puzzle: Puzzle = new Puzzle(puzzleId, grid.Connections[i][j], positionOnCanvas, view);
-        this._puzzles.push(puzzle);
+        const piece: PuzzlePiece = new PuzzlePiece(id++, targetImagePosition, fieldPosition, grid.Connections[i][j]);
+        pieces.push(piece);
       }
     }
 
-    return this._puzzles;
+    for (let piece of pieces) {
+      const adjecentIds = [
+        piece.Id - 1,
+        piece.Id + 1,
+        piece.Id - grid.Width,
+        piece.Id + grid.Width
+      ]
+
+      const adjecentPieces: PuzzlePiece[] = adjecentIds.filter(id => id >= 0 && id < pieces.length)
+        .map(id => pieces[id]);
+
+      piece.addAdjacentPieces(adjecentPieces);
+    }
+
+    return pieces;
   }
 
   private showFieldShadow(position: Point, targetImageHtmlImage: HTMLImageElement): void {
@@ -99,8 +105,7 @@ export default class Main extends Phaser.Scene {
   }
 
   private onPuzzleDrag(puzzleView: PuzzleView, eventDetails: PuzzleDragDetails): void {
-    if (eventDetails.Event == 'end')
-    {
+    if (eventDetails.Event == 'end') {
       this.onPuzzleDragEnd(puzzleView, eventDetails.Position);
     }
 
@@ -129,16 +134,26 @@ export default class Main extends Phaser.Scene {
   }
 
   private runGame(patternsAtlas: HTMLImageElement, targetImage: HTMLImageElement) {
-    this._soundFx = new SoundFx(this.sound);
+    const grid: GameGrid = this.getGrid(targetImage);
+    const offsetToCenter: Point = this.getOffsetsToCenter(targetImage);
 
-    this.constructPuzzlePieces(patternsAtlas, targetImage);
+    this.showFieldShadow(offsetToCenter, targetImage);
+
+    const pieces: PuzzlePiece[] = this.constructPuzzlePieces(grid, offsetToCenter);
+    const puzzleTextureMaker: PuzzleTextureMaker = new PuzzleTextureMaker(this.textures, patternsAtlas, targetImage);
+    this._puzzleMaker.constructOriginPuzzles(pieces, grid.Width, puzzleTextureMaker);
   }
 
   private create() {
+    this._soundFx = new SoundFx(this.sound);
+
+    const puzzleViewMaker = new PuzzleViewMaker(this.add, this.tweens, this.input);
+    this._puzzleMaker = new PuzzleMaker(puzzleViewMaker);
+
     const background: Phaser.GameObjects.Image = this.add.image(0, 0, 'background')
       .setOrigin(0, 0)
       .setAlpha(0.5);
-    
+
     this.loadImages(this.runGame);
   }
 }

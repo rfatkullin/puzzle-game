@@ -1,9 +1,11 @@
 import PuzzleConnections from "../grid/puzzle_connections";
 import Point from "./point";
+import PuzzlePiece from "./puzzle_piece";
 import PuzzleView from "./puzzle_view";
 
 export default class Puzzle {
     private _isOnTargetPosition: boolean = false;
+    private _adjacentPuzzles: Puzzle[] = []
 
     get IsOnTargetPosition(): boolean {
         return this._isOnTargetPosition;
@@ -11,19 +13,28 @@ export default class Puzzle {
 
     public readonly Id: number;
     public readonly TargetPosition: Point;
-    public readonly Connections: PuzzleConnections;
     public readonly View: PuzzleView;
+    public readonly Pieces: PuzzlePiece[] = []
 
-    public constructor(id: number, connections: PuzzleConnections, targetPosition: Point, view: PuzzleView) {
-        this.Id = id;
-        this.Connections = connections;
+    public constructor(id: number, 
+        targetPosition: Point,
+        pieces: PuzzlePiece[],
+        view: PuzzleView) {
+
+        this.Id = id;        
         this.TargetPosition = targetPosition;
         this.View = view;
+        this.Pieces = pieces;
+
         this._isOnTargetPosition = false;
     }
 
     public putOnTargetPosition(): void {
         this.View.setPosition(this.TargetPosition);
         this._isOnTargetPosition = true;
+    }
+
+    public addAdjacentPuzzle(adjacentPuzzle: Puzzle): void {
+        this._adjacentPuzzles.push(adjacentPuzzle);
     }
 }

@@ -2,7 +2,7 @@ import Config from "../config";
 import Point from "../contracts/point";
 import PuzzleView from "../contracts/puzzle_view";
 
-export default class GamePuzzleMaker {
+export default class PuzzleViewMaker {
     private readonly _gameObjectFactory: Phaser.GameObjects.GameObjectFactory;
     private readonly _tweensManager: Phaser.Tweens.TweenManager;
     private readonly _inputManager: Phaser.Input.InputPlugin
@@ -30,7 +30,7 @@ export default class GamePuzzleMaker {
         this._debugGraphics.setDepth(10000);
     }
 
-    public constructGamePuzzle(id: number, targetPosition: Point, texture: string, setRandomPositions: boolean = false): PuzzleView {
+    public constructPiecesView(id: number, targetPosition: Point, texture: string, setRandomPositions: boolean = false): PuzzleView {
         let x: number = targetPosition.x;
         let y: number = targetPosition.y;
 
