@@ -39,6 +39,10 @@ export default class PuzzleView {
         this._tweensManager = tweensManager;
     }
 
+    public getPosition(): Point {
+        return this.MainSprite;
+    }
+
     public setPosition(newPosition: { x: number, y: number }): void {
         const shadowPosition: Point = PuzzleView.getSpriteShadowPosition(newPosition);
 

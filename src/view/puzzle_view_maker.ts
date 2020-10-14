@@ -89,9 +89,23 @@ export default class PuzzleViewMaker {
             return;
         }
 
-        puzzleView.setPosition(pointer);
+        this.setViewPosition(puzzleView, pointer);
 
         this.drawLineToPositionOnDrag(puzzleView.MainSprite, puzzleView.TargetPosition);
+    }
+
+    private setViewPosition(puzzleView: PuzzleView, pointer: Phaser.Input.Pointer): void {
+        const delta: Point = {
+            x: pointer.position.x - pointer.prevPosition.x,
+            y: pointer.position.y - pointer.prevPosition.y
+        };
+        const oldPosition: Point = puzzleView.getPosition();
+        const newPostion: Point = {
+            x: oldPosition.x + delta.x,
+            y: oldPosition.y + delta.y
+        };
+
+        puzzleView.setPosition(newPostion);
     }
 
     private drawLineToPositionOnDrag(currentPosition: Point, onTargetPosition: Point) {
