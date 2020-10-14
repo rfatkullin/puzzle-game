@@ -31,12 +31,13 @@ export default class PuzzleViewMaker {
     }
 
     public constructPiecesView(id: number, targetPosition: Point, texture: string, setRandomPositions: boolean = false): PuzzleView {
-        let x: number = targetPosition.x;
-        let y: number = targetPosition.y;
+        let position: Point = targetPosition;
 
         if (setRandomPositions) {
-            x = Math.random() * Config.CanvasWidth;
-            y = Math.random() * Config.CanvasHeight;
+            position = {
+                x: Math.random() * Config.CanvasWidth,
+                y: Math.random() * Config.CanvasHeight
+            }
         }
 
         const puzzleShadowSprite: Phaser.GameObjects.Image = this._gameObjectFactory.image(0, 0, texture)
@@ -52,7 +53,7 @@ export default class PuzzleViewMaker {
         this._inputManager.setDraggable(puzzleSprite);
 
         const puzzleView: PuzzleView = new PuzzleView(id, texture, targetPosition, puzzleSprite, puzzleShadowSprite, this._tweensManager);
-        puzzleView.setPosition({ x: x, y: y });
+        puzzleView.setPosition(position);
 
         this._puzzleViewByName[puzzleSprite.name] = puzzleView;
 

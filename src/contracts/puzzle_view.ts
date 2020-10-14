@@ -43,7 +43,7 @@ export default class PuzzleView {
         return this.MainSprite;
     }
 
-    public setPosition(newPosition: { x: number, y: number }): void {
+    public setPosition(newPosition: Point): void {
         const shadowPosition: Point = PuzzleView.getSpriteShadowPosition(newPosition);
 
         this.MainSprite.setPosition(newPosition.x, newPosition.y);
