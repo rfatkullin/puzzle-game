@@ -59,13 +59,17 @@ export default class PuzzleMaker {
             pieces[currentPieceId] = null;
 
             const nextPossibleId: number[] = [];
-            if (currentPieceId + 1 < pieces.length && pieces[currentPieceId + 1]) {
+
+            const isTherePieceInSameRow = currentPieceId + 1 < pieces.length && pieces[currentPieceId + 1] && 
+                (currentPieceId + 1) % width != 0
+            if (isTherePieceInSameRow) {
                 nextPossibleId.push(currentPieceId + 1);
             }
+
             if (currentPieceId + width < pieces.length && pieces[currentPieceId + width]) {
                 nextPossibleId.push(currentPieceId + width)
             }
-
+            
             if (nextPossibleId) {
                 currentPieceId = nextPossibleId[Math.floor(Math.random() * (nextPossibleId.length + 1))];
             }
