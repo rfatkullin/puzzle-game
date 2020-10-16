@@ -1,4 +1,4 @@
-import Point from "../point";
+import Point = Phaser.Geom.Point;
 
 export default class PuzzleDragDetails {
     public Event: string;

@@ -12,7 +12,6 @@ import PuzzleGridMaker from "./grid/grid_maker";
 import Puzzle from "./contracts/puzzle";
 import PuzzleTextureMaker from "./view/puzzle_texture_maker";
 import Config from "./config";
-import Point from "./contracts/point";
 import PuzzleViewMaker from "./view/puzzle_view_maker";
 import GameGrid from "./grid/game_grid";
 import SoundFx from './fx/sound_fx';
@@ -20,6 +19,8 @@ import PuzzleView from "./contracts/puzzle_view";
 import PuzzleDragDetails from "./contracts/events/puzzle_drag_details";
 import PuzzlePiece from "./contracts/puzzle_piece";
 import PuzzleMaker from "./view/puzzle_maker";
+
+import Point = Phaser.Geom.Point;
 
 export default class Main extends Phaser.Scene {
 
@@ -98,10 +99,9 @@ export default class Main extends Phaser.Scene {
   }
 
   private getOffsetsToCenter(targetImageSize: { width: number, height: number }): Point {
-    return {
-      x: (Config.CanvasWidth - targetImageSize.width) / 2,
-      y: (Config.CanvasHeight - targetImageSize.height) / 2,
-    }
+    return new Point(
+      (Config.CanvasWidth - targetImageSize.width) / 2,
+      (Config.CanvasHeight - targetImageSize.height) / 2);
   }
 
   private onPuzzleDrag(puzzleView: PuzzleView, eventDetails: PuzzleDragDetails): void {

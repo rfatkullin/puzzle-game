@@ -1,8 +1,9 @@
-import Point from "./point";
 import Config from "../config";
 
 import { IEvent, EventDispatcher } from "strongly-typed-events";
 import PuzzleDragDetails from "./events/puzzle_drag_details";
+
+import Point = Phaser.Geom.Point;
 
 export default class PuzzleView {
     private readonly _tweensManager: Phaser.Tweens.TweenManager;
@@ -40,7 +41,8 @@ export default class PuzzleView {
     }
 
     public getPosition(): Point {
-        return this.MainSprite;
+        var { x, y } = this.MainSprite;
+        return new Point(x, y);
     }
 
     public setPosition(newPosition: Point): void {
@@ -92,9 +94,8 @@ export default class PuzzleView {
     }
 
     private static getSpriteShadowPosition(spritePosition: Point): Point {
-        return {
-            x: spritePosition.x + Config.PuzzleShadowOffset,
-            y: spritePosition.y + Config.PuzzleShadowOffset
-        };
+        return new Point(
+            spritePosition.x + Config.PuzzleShadowOffset,
+            spritePosition.y + Config.PuzzleShadowOffset);
     }
 }

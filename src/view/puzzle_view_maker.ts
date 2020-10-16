@@ -1,6 +1,7 @@
 import Config from "../config";
-import Point from "../contracts/point";
 import PuzzleView from "../contracts/puzzle_view";
+
+import Point = Phaser.Geom.Point;
 
 export default class PuzzleViewMaker {
     private readonly _gameObjectFactory: Phaser.GameObjects.GameObjectFactory;
@@ -34,10 +35,9 @@ export default class PuzzleViewMaker {
         let position: Point = targetPosition;
 
         if (setRandomPositions) {
-            position = {
-                x: Math.random() * Config.CanvasWidth,
-                y: Math.random() * Config.CanvasHeight
-            }
+            position = new Point(
+                Math.random() * Config.CanvasWidth,
+                Math.random() * Config.CanvasHeight);
         }
 
         const puzzleShadowSprite: Phaser.GameObjects.Image = this._gameObjectFactory.image(0, 0, texture)
@@ -92,19 +92,19 @@ export default class PuzzleViewMaker {
 
         this.setViewPosition(puzzleView, pointer);
 
-        this.drawLineToPositionOnDrag(puzzleView.MainSprite, puzzleView.TargetPosition);
+        const { x, y } = puzzleView.MainSprite;
+        this.drawLineToPositionOnDrag(new Point(x, y), puzzleView.TargetPosition);
     }
 
     private setViewPosition(puzzleView: PuzzleView, pointer: Phaser.Input.Pointer): void {
-        const delta: Point = {
-            x: pointer.position.x - pointer.prevPosition.x,
-            y: pointer.position.y - pointer.prevPosition.y
-        };
+        const delta: Point = new Point(
+            pointer.position.x - pointer.prevPosition.x,
+            pointer.position.y - pointer.prevPosition.y);
+
         const oldPosition: Point = puzzleView.getPosition();
-        const newPostion: Point = {
-            x: oldPosition.x + delta.x,
-            y: oldPosition.y + delta.y
-        };
+        const newPostion: Point = new Point(
+            oldPosition.x + delta.x,
+            oldPosition.y + delta.y);
 
         puzzleView.setPosition(newPostion);
     }

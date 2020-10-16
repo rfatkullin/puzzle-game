@@ -1,5 +1,6 @@
 import PuzzleConnections from "../grid/puzzle_connections";
-import Point from "./point";
+
+import Point = Phaser.Geom.Point;
 
 export default class PuzzlePiece {
     public readonly Id: number;

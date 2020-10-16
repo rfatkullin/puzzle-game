@@ -1,9 +1,10 @@
-import Point from "../contracts/point";
 import Puzzle from "../contracts/puzzle";
 import PuzzlePiece from "../contracts/puzzle_piece";
 import PuzzleView from "../contracts/puzzle_view";
 import PuzzleTextureMaker from "./puzzle_texture_maker";
 import PuzzleViewMaker from "./puzzle_view_maker";
+
+import Point = Phaser.Geom.Point;
 
 export default class PuzzleMaker {
     private _viewMaker: PuzzleViewMaker;
@@ -60,7 +61,7 @@ export default class PuzzleMaker {
 
             const nextPossibleId: number[] = [];
 
-            const isTherePieceInSameRow = currentPieceId + 1 < pieces.length && pieces[currentPieceId + 1] && 
+            const isTherePieceInSameRow = currentPieceId + 1 < pieces.length && pieces[currentPieceId + 1] &&
                 (currentPieceId + 1) % width != 0
             if (isTherePieceInSameRow) {
                 nextPossibleId.push(currentPieceId + 1);
@@ -69,7 +70,7 @@ export default class PuzzleMaker {
             if (currentPieceId + width < pieces.length && pieces[currentPieceId + width]) {
                 nextPossibleId.push(currentPieceId + width)
             }
-            
+
             if (nextPossibleId) {
                 currentPieceId = nextPossibleId[Math.floor(Math.random() * (nextPossibleId.length + 1))];
             }
@@ -82,7 +83,7 @@ export default class PuzzleMaker {
     }
 
     private getPiecesCenterPoint(pieces: PuzzlePiece[]): Point {
-        const initialValue: Point = { x: 0, y: 0 };
+        const initialValue = new Point(0, 0);
 
         const reducer = (agg: Point, currentPoint: Point) => {
             agg.x += currentPoint.x;
@@ -94,9 +95,8 @@ export default class PuzzleMaker {
         const positionsSum: Point = pieces.map(piece => piece.FieldPosition)
             .reduce(reducer, initialValue);
 
-        return {
-            x: positionsSum.x / pieces.length,
-            y: positionsSum.y / pieces.length
-        };
-    }
+        return new Point(
+            positionsSum.x / pieces.length,
+            positionsSum.y / pieces.length);
+    };
 }

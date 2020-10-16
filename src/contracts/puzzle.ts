@@ -1,7 +1,7 @@
-import PuzzleConnections from "../grid/puzzle_connections";
-import Point from "./point";
 import PuzzlePiece from "./puzzle_piece";
 import PuzzleView from "./puzzle_view";
+
+import Point = Phaser.Geom.Point;
 
 export default class Puzzle {
     private _isOnTargetPosition: boolean = false;

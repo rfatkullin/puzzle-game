@@ -1,9 +1,10 @@
 import { EConnection } from "../grid/connection";
 import PuzzleConnections from "../grid/puzzle_connections";
-import Point from "../contracts/point";
 import Config from "../config";
 import PuzzlePiece from "../contracts/puzzle_piece";
 import PieceAdjacements from "./adjacent_pieces";
+
+import Point = Phaser.Geom.Point;
 
 export default class PuzzleTextureMaker {
     private readonly _sizeOfInnerPartOfPiece: number = Config.InnerQuadSize;
@@ -70,7 +71,11 @@ export default class PuzzleTextureMaker {
         const topY: number = Math.min(...positions.map(p => p.y));
 
         for (let piece of pieces) {
-            this.drawPuzzlePieceMask(canvasContext, { x: piece.TargetImagePosition.x - leftX, y: piece.TargetImagePosition.y - topY }, piece.Connections);
+            const offset = new Point(
+                piece.TargetImagePosition.x - leftX,
+                piece.TargetImagePosition.y - topY);
+
+            this.drawPuzzlePieceMask(canvasContext, offset, piece.Connections);
         }
 
         canvasContext.globalCompositeOperation = 'source-in';
@@ -92,9 +97,13 @@ export default class PuzzleTextureMaker {
 
         for (let piece of pieces) {
             const adjacements: PieceAdjacements = this.getPieceAdjacement(piece.Id, piecesPerRow, pieces);
-            this.drawPuzzlePieceBorder(canvasContext, 
-                { x: piece.TargetImagePosition.x - leftX, y: piece.TargetImagePosition.y - topY }, 
-                piece.Connections, 
+            const offset = new Point(
+                piece.TargetImagePosition.x - leftX,
+                piece.TargetImagePosition.y - topY);
+
+            this.drawPuzzlePieceBorder(canvasContext,
+                offset,
+                piece.Connections,
                 adjacements);
         }
 
@@ -117,8 +126,8 @@ export default class PuzzleTextureMaker {
 
         const quadHalf: number = Config.PuzzleTotalSize / 2;
         return {
-            leftTop: { x: left - quadHalf, y: top - quadHalf },
-            rightBottom: { x: right + quadHalf, y: bottom + quadHalf }
+            leftTop: new Point(left - quadHalf, top - quadHalf),
+            rightBottom: new Point(right + quadHalf, bottom + quadHalf)
         };
     }
 
@@ -131,7 +140,7 @@ export default class PuzzleTextureMaker {
         );
         const canvasContext: CanvasRenderingContext2D = canvas.context;
 
-        this.drawPuzzlePieceMask(canvasContext, { x: 0, y: 0 }, connections);
+        this.drawPuzzlePieceMask(canvasContext, new Point(0, 0), connections);
 
         canvasContext.globalCompositeOperation = 'source-in';
 
@@ -142,7 +151,7 @@ export default class PuzzleTextureMaker {
 
         canvasContext.globalCompositeOperation = 'source-over';
 
-        this.drawPuzzlePieceBorder(canvasContext, { x: 0, y: 0 }, connections, PieceAdjacements.Alone());
+        this.drawPuzzlePieceBorder(canvasContext, new Point(0, 0), connections, PieceAdjacements.Alone());
 
         canvasContext.save();
         canvas.refresh();
@@ -217,7 +226,7 @@ export default class PuzzleTextureMaker {
     }
 
     private drawPuzzlePieceBorder(ctx: CanvasRenderingContext2D, pos: Point, puzzle: PuzzleConnections, adjacements: PieceAdjacements) {
-        if (!adjacements.Bottom) {            
+        if (!adjacements.Bottom) {
             if (puzzle.BottomConnection == EConnection.In) {
                 this.drawnBorder(this._patternsAtlas, ctx, "horiz-in-bottom", pos.x + this._offset, pos.y + this._sizeOfInnerPartOfPiece);
             }
