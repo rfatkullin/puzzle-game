@@ -21,10 +21,11 @@ import PuzzlePiece from "./contracts/puzzle_piece";
 import PuzzleMaker from "./view/puzzle_maker";
 
 import Point = Phaser.Geom.Point;
+import DebugDrawer from "./debug/debug_drawer";
 
 export default class Main extends Phaser.Scene {
 
-  private readonly _puzzles: Puzzle[] = [];
+  private _puzzles: Puzzle[] = [];
 
   private _puzzleMaker: PuzzleMaker;
   private _soundFx: SoundFx;
@@ -105,15 +106,21 @@ export default class Main extends Phaser.Scene {
   }
 
   private onPuzzleDrag(puzzleView: PuzzleView, eventDetails: PuzzleDragDetails): void {
-    if (eventDetails.Event == 'end') {
-      this.onPuzzleDragEnd(puzzleView, eventDetails.Position);
+    switch (eventDetails.Event) {
+      case 'end':
+        this.onPuzzleDragEnd(puzzleView, eventDetails.Position);
+        this._soundFx.onPuzzleDrag(eventDetails.Event);
+        break;
+      case 'start':
+        this._soundFx.onPuzzleDrag(eventDetails.Event);
+        break;
+      default:
+        break;
     }
-
-    this._soundFx.onPuzzleDrag(eventDetails.Event);
   }
 
   private onPuzzleDragEnd(puzzleView: PuzzleView, newPosition: Point): void {
-    const puzzle: Puzzle = this._puzzles[puzzleView.PuzzleId];
+    const puzzle: Puzzle = this._puzzles.find(puzzle => puzzle.Id == puzzleView.PuzzleId);
     const distance: number = Phaser.Math.Distance.BetweenPoints(puzzle.TargetPosition, newPosition);
 
     if (distance < Config.MinDistanceToAutoPut) {
@@ -141,13 +148,19 @@ export default class Main extends Phaser.Scene {
 
     const pieces: PuzzlePiece[] = this.constructPuzzlePieces(grid, offsetToCenter);
     const puzzleTextureMaker: PuzzleTextureMaker = new PuzzleTextureMaker(this.textures, patternsAtlas, targetImage);
-    this._puzzleMaker.constructOriginPuzzles(pieces, grid.Width, puzzleTextureMaker);
+
+    this._puzzles = this._puzzleMaker.constructOriginPuzzles(pieces, grid.Width, puzzleTextureMaker);
   }
 
   private create() {
     this._soundFx = new SoundFx(this.sound);
 
+    const debugDrawer: DebugDrawer = new DebugDrawer(this.add);
     const puzzleViewMaker = new PuzzleViewMaker(this.add, this.tweens, this.input);
+
+    puzzleViewMaker.DragEvent.subscribe(this.onPuzzleDrag)
+    puzzleViewMaker.DragEvent.subscribe(debugDrawer.onDragPuzzle);
+
     this._puzzleMaker = new PuzzleMaker(puzzleViewMaker);
 
     const background: Phaser.GameObjects.Image = this.add.image(0, 0, 'background')

@@ -27,8 +27,8 @@ export default class Config {
     // Debug
     public static readonly DebugLineStyle = { width: 2, color: 0xffffff };
 
-    public static readonly DebugDrawingConfigs = {
+    public static readonly DebugDrawing = {
+        enabled: false,
         lineStyle: Config.DebugLineStyle
     };
-
 }

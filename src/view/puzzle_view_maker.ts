@@ -1,7 +1,10 @@
 import Config from "../config";
 import PuzzleView from "../contracts/puzzle_view";
 
+import { IEvent, EventDispatcher } from "strongly-typed-events";
+
 import Point = Phaser.Geom.Point;
+import PuzzleDragDetails from "../contracts/events/puzzle_drag_details";
 
 export default class PuzzleViewMaker {
     private readonly _gameObjectFactory: Phaser.GameObjects.GameObjectFactory;
@@ -10,7 +13,11 @@ export default class PuzzleViewMaker {
 
     private readonly _puzzleViewByName: Map<string, PuzzleView> = new Map<string, PuzzleView>();
 
-    private readonly _debugGraphics: Phaser.GameObjects.Graphics;
+    private _dragEvent = new EventDispatcher<PuzzleView, PuzzleDragDetails>();
+
+    public get DragEvent(): IEvent<PuzzleView, PuzzleDragDetails> {
+        return this._dragEvent.asEvent();
+    }
 
     constructor(newGameObjectFactory: Phaser.GameObjects.GameObjectFactory,
         newTweensManager: Phaser.Tweens.TweenManager,
@@ -26,9 +33,6 @@ export default class PuzzleViewMaker {
         this._inputManager.on('dragstart', this.onDragStart);
         this._inputManager.on('drag', this.onDrag);
         this._inputManager.on('dragend', this.onDragEnd);
-
-        this._debugGraphics = this._gameObjectFactory.graphics(Config.DebugDrawingConfigs);
-        this._debugGraphics.setDepth(10000);
     }
 
     public constructPiecesView(id: number, targetPosition: Point, texture: string, setRandomPositions: boolean = false): PuzzleView {
@@ -66,18 +70,25 @@ export default class PuzzleViewMaker {
             return;
         }
 
-        this._puzzleViewByName[puzzleId].onDragStart(pointer);
+        const puzzleView: PuzzleView = this._puzzleViewByName[puzzleId];
+        
+        puzzleView.onDragStart();
+        
+        var newPosition = new Point(pointer.x, pointer.y);
+        this._dragEvent.dispatch(puzzleView, new PuzzleDragDetails('start', newPosition));
     }
 
     private onDragEnd(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject): void {
-        this._debugGraphics.clear();
-
         const puzzleId: string = gameObject.name;
         if (!puzzleId) {
             return;
         }
 
-        this._puzzleViewByName[puzzleId].onDragEnd(pointer);
+        const puzzleView: PuzzleView = this._puzzleViewByName[puzzleId];
+        puzzleView.onDragEnd();
+
+        var newPosition = new Point(pointer.x, pointer.y);
+        this._dragEvent.dispatch(puzzleView, new PuzzleDragDetails('end', newPosition));
     }
 
     private onDrag(pointer: Phaser.Input.Pointer, gameObject: Phaser.GameObjects.GameObject) {
@@ -85,15 +96,16 @@ export default class PuzzleViewMaker {
             return;
         }
 
-        const puzzleView: PuzzleView = this._puzzleViewByName[gameObject.name];
+        const puzzleId: string = gameObject.name;
+        const puzzleView: PuzzleView = this._puzzleViewByName[puzzleId];
         if (!puzzleView) {
             return;
         }
 
         this.setViewPosition(puzzleView, pointer);
-
-        const { x, y } = puzzleView.MainSprite;
-        this.drawLineToPositionOnDrag(new Point(x, y), puzzleView.TargetPosition);
+        
+        var newPosition = new Point(pointer.x, pointer.y);
+        this._dragEvent.dispatch(puzzleView, new PuzzleDragDetails('drag', newPosition));
     }
 
     private setViewPosition(puzzleView: PuzzleView, pointer: Phaser.Input.Pointer): void {
@@ -107,12 +119,5 @@ export default class PuzzleViewMaker {
             oldPosition.y + delta.y);
 
         puzzleView.setPosition(newPostion);
-    }
-
-    private drawLineToPositionOnDrag(currentPosition: Point, onTargetPosition: Point) {
-        const line: Phaser.Geom.Line = new Phaser.Geom.Line(currentPosition.x, currentPosition.y, onTargetPosition.x, onTargetPosition.y);
-
-        this._debugGraphics.clear();
-        this._debugGraphics.strokeLineShape(line);
     }
 }

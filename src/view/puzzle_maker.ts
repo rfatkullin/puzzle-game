@@ -18,9 +18,6 @@ export default class PuzzleMaker {
         const piecesTexture = textureMaker.generateTextureForPieces(id, pieces, piecesPerRow);
 
         const view: PuzzleView = this._viewMaker.constructPiecesView(id, centerPosition, piecesTexture, false);
-
-        //view.onDrag.subscribe(this.onPuzzleDrag);
-
         const puzzle: Puzzle = new Puzzle(id, centerPosition, pieces, view);
 
         return puzzle;

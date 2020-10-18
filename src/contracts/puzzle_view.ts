@@ -1,18 +1,11 @@
 import Config from "../config";
 
-import { IEvent, EventDispatcher } from "strongly-typed-events";
 import PuzzleDragDetails from "./events/puzzle_drag_details";
 
 import Point = Phaser.Geom.Point;
 
 export default class PuzzleView {
     private readonly _tweensManager: Phaser.Tweens.TweenManager;
-
-    private _dragEvent = new EventDispatcher<PuzzleView, PuzzleDragDetails>();
-
-    public get onDrag(): IEvent<PuzzleView, PuzzleDragDetails> {
-        return this._dragEvent.asEvent();
-    }
 
     public readonly PuzzleId: number;
 
@@ -52,14 +45,12 @@ export default class PuzzleView {
         this.ShadowSprite.setPosition(shadowPosition.x, shadowPosition.y);
     }
 
-    public onDragStart(position: Point) {
+    public onDragStart() {
         this.startZoomInAnimation();
-        this._dragEvent.dispatch(this, new PuzzleDragDetails('start', position));
     }
 
-    public onDragEnd(position: Point) {
+    public onDragEnd() {
         this.startZoomOutAnimation();
-        this._dragEvent.dispatch(this, new PuzzleDragDetails('end', position));
     }
 
     private startZoomInAnimation(): void {
