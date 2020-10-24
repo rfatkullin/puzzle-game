@@ -1,13 +1,19 @@
 import Config from "../config";
 import PuzzleDragDetails from "../contracts/events/puzzle_drag_details";
+import Puzzle from "../contracts/puzzle";
+import PuzzlePiece from "../contracts/puzzle_piece";
 import PuzzleView from "../contracts/puzzle_view";
 
 import ObjectFactory = Phaser.GameObjects.GameObjectFactory;
+import Line = Phaser.Geom.Line;
+import Point = Phaser.Geom.Point;
 
 export default class DebugDrawer {
     private static readonly GraphicsDepth = 10000;
 
     private readonly _debugGraphics: Phaser.GameObjects.Graphics;
+
+    private _puzzles: Puzzle[];
 
     public constructor(objectFactory: ObjectFactory) {
         if (Config.DebugDrawing.enabled) {
@@ -21,7 +27,7 @@ export default class DebugDrawer {
     public onDragPuzzle(puzzleView: PuzzleView, eventDetails: PuzzleDragDetails): void {
         switch (eventDetails.Event) {
             case 'drag':
-                this.drawLineToPositionOnDrag(puzzleView);
+                this.drawTargetLines(puzzleView.PuzzleId);
                 break;
             case 'end':
                 this.onDragEndPuzzle();
@@ -29,6 +35,10 @@ export default class DebugDrawer {
             default:
                 break;
         }
+    }
+
+    public setPuzzles(puzzles: Puzzle[]): void {
+        this._puzzles = puzzles;
     }
 
     private onDragEndPuzzle(): void {
@@ -39,17 +49,51 @@ export default class DebugDrawer {
         this._debugGraphics.clear();
     }
 
-    private drawLineToPositionOnDrag(puzzleView: PuzzleView,) {
+    private drawTargetLines(puzzleId: number): void {
         if (this._debugGraphics == null) {
             return;
         }
 
+        this._debugGraphics.clear();
+
+        const puzzle: Puzzle = this._puzzles.find(puzzle => puzzle.Id == puzzleId);
+        this.drawLineToTargetPosition(puzzle.View);
+        this.drawLinesToLocks(puzzle.Pieces);
+    }
+
+    private drawLinesToLocks(pieces: PuzzlePiece[]): void {
+        const piecesIds: number[] = pieces.map(piece => piece.Id);
+
+        for (let piece of pieces) {
+            if (piece.Left && piecesIds.indexOf(piece.Left.Id) < 0) {
+                this.lineDrawToLock(piece.getLeftLockPosition(), piece.Left.getRightLockPosition());
+            }
+
+            if (piece.Top && piecesIds.indexOf(piece.Top.Id) < 0) {
+                this.lineDrawToLock(piece.getTopLockPosition(), piece.Top.getBottomLockPosition());
+            }
+
+            if (piece.Right && piecesIds.indexOf(piece.Right.Id) < 0) {
+                this.lineDrawToLock(piece.getRightLockPosition(), piece.Right.getLeftLockPosition());
+            }
+
+            if (piece.Bottom && piecesIds.indexOf(piece.Bottom.Id) < 0) {
+                this.lineDrawToLock(piece.getBottomLockPosition(), piece.Bottom.getTopLockPosition());
+            }
+        }
+    }
+
+    private lineDrawToLock(startPosition: Point, endPosition: Point): void {
+        const line = new Line(startPosition.x, startPosition.y, endPosition.x, endPosition.y);
+
+        this._debugGraphics.strokeLineShape(line);
+    }
+
+    private drawLineToTargetPosition(puzzleView: PuzzleView): void {
         const { x, y } = puzzleView.MainSprite;
         const { x: targetX, y: targetY } = puzzleView.TargetPosition;
 
-        const line: Phaser.Geom.Line = new Phaser.Geom.Line(x, y, targetX, targetY);
-
-        this._debugGraphics.clear();
+        const line = new Line(x, y, targetX, targetY);
         this._debugGraphics.strokeLineShape(line);
     }
 }

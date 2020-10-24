@@ -118,6 +118,8 @@ export default class Main extends Phaser.Scene {
     const gameField: GameField = this.getField(targetImage);
 
     this._puzzles = this._puzzleMaker.constructPuzzlesForGameStart(gameField.Pieces, gameField.Width, this._fieldStartPosition);
+
+    this._debugDrawer.setPuzzles(this._puzzles);
   }
 
   private setFieldStartPosition({ width, height }: { width: number, height: number }): void {

@@ -10,13 +10,13 @@ export default class PuzzlePiece {
     public readonly TargetPositionOnField: Point;
     public readonly Origin: PuzzlePieceOrigin;
 
+    public Left: PuzzlePiece;
+    public Top: PuzzlePiece;
+    public Right: PuzzlePiece;
+    public Bottom: PuzzlePiece;
+
     private _relativePosition: Point;
     private _parent: Puzzle;
-    
-    private _left: PuzzlePiece;
-    private _top: PuzzlePiece;
-    private _right: PuzzlePiece;
-    private _bottom: PuzzlePiece;
 
     public constructor(originPiece: PuzzlePieceOrigin, targetPositionOnField: Point) {
         this.Id = originPiece.Id;
@@ -24,44 +24,40 @@ export default class PuzzlePiece {
         this.TargetPositionOnField = targetPositionOnField;
     }
 
-    public getLockPositions(): Point[] {
-        const lockPositions: Point[] = [];
-        const absolutePosition: Point = new Point(
-            this._relativePosition.x + this._parent.Position.x,
-            this._relativePosition.y + this._parent.Position.y
+    public getLeftLockPosition(): Point {
+        const absolutePosition: Point = this.getAbsolutePosition();
+
+        return new Point(
+            absolutePosition.x - Config.InnerQuadSize / 2,
+            absolutePosition.y
         );
+    }
 
-        const connections: PuzzleLocks = this._origin.Locks;
+    public getTopLockPosition(): Point {
+        const absolutePosition: Point = this.getAbsolutePosition();
 
-        if (connections.LeftConnection != ELockType.None) {
-            lockPositions.push(new Point(
-                absolutePosition.x - Config.InnerQuadSize / 2,
-                absolutePosition.y
-            ));
-        }
+        return new Point(
+            absolutePosition.x,
+            absolutePosition.y - Config.InnerQuadSize / 2
+        );
+    }
 
-        if (connections.TopConnection != ELockType.None) {
-            lockPositions.push(new Point(
-                absolutePosition.x,
-                absolutePosition.y - Config.InnerQuadSize / 2
-            ));
-        }
+    public getRightLockPosition(): Point {
+        const absolutePosition: Point = this.getAbsolutePosition();
 
-        if (connections.RightConnection != ELockType.None) {
-            lockPositions.push(new Point(
-                absolutePosition.x + Config.InnerQuadSize / 2,
-                absolutePosition.y
-            ));
-        }
+        return new Point(
+            absolutePosition.x + Config.InnerQuadSize / 2,
+            absolutePosition.y
+        );
+    }
 
-        if (connections.BottomConnection != ELockType.None) {
-            lockPositions.push(new Point(
-                absolutePosition.x,
-                absolutePosition.y + Config.InnerQuadSize / 2
-            ));
-        }
+    public getBottomLockPosition(): Point {
+        const absolutePosition: Point = this.getAbsolutePosition();
 
-        return lockPositions;
+        return new Point(
+            absolutePosition.x,
+            absolutePosition.y + Config.InnerQuadSize / 2
+        );
     }
 
     public setParent(parent: Puzzle, relativePosition: Point): void {
@@ -70,9 +66,16 @@ export default class PuzzlePiece {
     }
 
     public setAdjacentPieces(left: PuzzlePiece, top: PuzzlePiece, right: PuzzlePiece, bottom: PuzzlePiece) {
-        this._left = left;
-        this._top = top;
-        this._right = right;
-        this._bottom = bottom;
+        this.Left = left;
+        this.Top = top;
+        this.Right = right;
+        this.Bottom = bottom;
+    }
+
+    private getAbsolutePosition(): Point {
+        return new Point(
+            this._relativePosition.x + this._parent.View.MainSprite.x,
+            this._relativePosition.y + this._parent.View.MainSprite.y
+        );
     }
 }
