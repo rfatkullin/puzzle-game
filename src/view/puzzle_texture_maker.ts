@@ -1,10 +1,10 @@
-import { EConnection } from "../grid/connection";
-import PuzzleConnections from "../grid/puzzle_connections";
+import { ELockType } from "../contracts/lock/puzzle_elock_type";
 import Config from "../config";
-import PuzzlePiece from "../contracts/puzzle_piece";
-import PieceAdjacements from "./adjacent_pieces";
 
 import Point = Phaser.Geom.Point;
+import PuzzlePiece from "../contracts/puzzle_piece";
+import PuzzleLocks from "../contracts/lock/puzzle_locks";
+import PuzzleLock from "../contracts/lock/puzzle_lock";
 
 export default class PuzzleTextureMaker {
     private readonly _sizeOfInnerPartOfPiece: number = Config.InnerQuadSize;
@@ -45,14 +45,18 @@ export default class PuzzleTextureMaker {
         "vert-solid-right": [80, 50, 1, 50],
     };
 
-    private readonly _patternsAtlas: HTMLImageElement;
-    private readonly _target: HTMLImageElement;
     private readonly _textureManager: Phaser.Textures.TextureManager;
 
-    public constructor(newTextureManager: Phaser.Textures.TextureManager, newPatternsAtlas: HTMLImageElement, newTarget: HTMLImageElement) {
+    private _patternsAtlas: HTMLImageElement;
+    private _target: HTMLImageElement;
+
+    public constructor(newTextureManager: Phaser.Textures.TextureManager,) {
+        this._textureManager = newTextureManager;
+    }
+
+    public setPatternsAndTarget(newPatternsAtlas: HTMLImageElement, newTarget: HTMLImageElement): void {
         this._patternsAtlas = newPatternsAtlas;
         this._target = newTarget;
-        this._textureManager = newTextureManager;
     }
 
     public generateTextureForPieces(id: number, pieces: PuzzlePiece[], piecesPerRow: number): string {
@@ -66,16 +70,16 @@ export default class PuzzleTextureMaker {
         );
         const canvasContext: CanvasRenderingContext2D = canvas.context;
 
-        const positions: Point[] = pieces.map(piece => piece.TargetImagePosition);
+        const positions: Point[] = pieces.map(piece => piece.Origin.TargetImagePosition);
         const leftX: number = Math.min(...positions.map(p => p.x));
         const topY: number = Math.min(...positions.map(p => p.y));
 
         for (let piece of pieces) {
             const offset = new Point(
-                piece.TargetImagePosition.x - leftX,
-                piece.TargetImagePosition.y - topY);
+                piece.Origin.TargetImagePosition.x - leftX,
+                piece.Origin.TargetImagePosition.y - topY);
 
-            this.drawPuzzlePieceMask(canvasContext, offset, piece.Connections);
+            this.drawPuzzlePieceMask(canvasContext, offset, piece.Origin.Locks);
         }
 
         canvasContext.globalCompositeOperation = 'source-in';
@@ -96,15 +100,13 @@ export default class PuzzleTextureMaker {
         canvasContext.globalCompositeOperation = 'source-over';
 
         for (let piece of pieces) {
-            const adjacements: PieceAdjacements = this.getPieceAdjacement(piece.Id, piecesPerRow, pieces);
             const offset = new Point(
-                piece.TargetImagePosition.x - leftX,
-                piece.TargetImagePosition.y - topY);
+                piece.Origin.TargetImagePosition.x - leftX,
+                piece.Origin.TargetImagePosition.y - topY);
 
             this.drawPuzzlePieceBorder(canvasContext,
                 offset,
-                piece.Connections,
-                adjacements);
+                piece.Origin.Locks);
         }
 
         canvasContext.save();
@@ -114,7 +116,7 @@ export default class PuzzleTextureMaker {
     }
 
     private getBoundaries(pieces: PuzzlePiece[]): { leftTop: Point, rightBottom: Point } {
-        const positions: Point[] = pieces.map(piece => piece.TargetImagePosition);
+        const positions: Point[] = pieces.map(piece => piece.Origin.TargetImagePosition);
         const xValues: number[] = positions.map(position => position.x);
         const yValues: number[] = positions.map(position => position.y)
 
@@ -131,7 +133,7 @@ export default class PuzzleTextureMaker {
         };
     }
 
-    public generateTextureForPuzzle(puzzleId: number, positionOnTarget: Point, connections: PuzzleConnections): string {
+    public generateTextureForPuzzle(puzzleId: number, positionOnTarget: Point, connections: PuzzleLocks): string {
         const textureId: string = `puzzlePiece-${puzzleId}`;
         const canvas: Phaser.Textures.CanvasTexture = this._textureManager.createCanvas(
             textureId,
@@ -151,21 +153,12 @@ export default class PuzzleTextureMaker {
 
         canvasContext.globalCompositeOperation = 'source-over';
 
-        this.drawPuzzlePieceBorder(canvasContext, new Point(0, 0), connections, PieceAdjacements.Alone());
+        this.drawPuzzlePieceBorder(canvasContext, new Point(0, 0), connections);
 
         canvasContext.save();
         canvas.refresh();
 
         return textureId;
-    }
-
-    private getPieceAdjacement(pieceId: number, width: number, pieces: PuzzlePiece[]): PieceAdjacements {
-        const fromLeft = pieces.findIndex(piece => piece.Id == pieceId - 1) >= 0;
-        const fromTop = pieces.findIndex(piece => piece.Id == pieceId - width) >= 0;
-        const fromRight = pieces.findIndex(piece => piece.Id == pieceId + 1) >= 0;
-        const fromBottom = pieces.findIndex(piece => piece.Id == pieceId + width) >= 0;
-
-        return new PieceAdjacements(fromLeft, fromTop, fromRight, fromBottom);
     }
 
     private drawPatternPiece(patternsImage: HTMLImageElement, ctx: CanvasRenderingContext2D, pieceName: string, x: number, y: number) {
@@ -180,98 +173,90 @@ export default class PuzzleTextureMaker {
         ctx.drawImage(patternsImage, xOffset, yOffset, width, height, x, y, width, height);
     }
 
-    private drawPuzzlePieceMask(ctx: CanvasRenderingContext2D, pos: Point, puzzle: PuzzleConnections) {
+    private drawPuzzlePieceMask(ctx: CanvasRenderingContext2D, pos: Point, puzzle: PuzzleLocks) {
         this.drawPatternPiece(this._patternsAtlas, ctx, "quad", pos.x + this._offset * 2, pos.y + this._offset * 2);
 
-        if (puzzle.BottomConnection == EConnection.In) {
+        if (puzzle.Bottom.LockType == ELockType.In) {
             this.drawPatternPiece(this._patternsAtlas, ctx, "horiz-in", pos.x + this._offset, pos.y + this._sizeOfInnerPartOfPiece);
         }
         else {
             this.drawPatternPiece(this._patternsAtlas, ctx, "horiz-solid", pos.x + this._offset, pos.y + this._sizeOfInnerPartOfPiece);
-            if (puzzle.BottomConnection == EConnection.Out) {
+            if (puzzle.Bottom.LockType == ELockType.Out) {
                 this.drawPatternPiece(this._patternsAtlas, ctx, "horiz-out", pos.x + this._offset, pos.y + this._sizeOfInnerPartOfPiece + this._offset);
             }
         }
 
-        if (puzzle.TopConnection == EConnection.In) {
+        if (puzzle.Top.LockType == ELockType.In) {
             this.drawPatternPiece(this._patternsAtlas, ctx, "horiz-in", pos.x + this._offset, pos.y + this._offset);
         }
         else {
             this.drawPatternPiece(this._patternsAtlas, ctx, "horiz-solid", pos.x + this._offset, pos.y + this._offset);
-            if (puzzle.TopConnection == EConnection.Out) {
+            if (puzzle.Top.LockType == ELockType.Out) {
                 this.drawPatternPiece(this._patternsAtlas, ctx, "horiz-out", pos.x + this._offset, pos.y);
             }
         }
 
-        if (puzzle.RightConnection == EConnection.In) {
+        if (puzzle.Right.LockType == ELockType.In) {
             this.drawPatternPiece(this._patternsAtlas, ctx, "vert-in", pos.x + this._sizeOfInnerPartOfPiece, pos.y + this._offset);
         }
         else {
             this.drawPatternPiece(this._patternsAtlas, ctx, "vert-solid", pos.x + this._sizeOfInnerPartOfPiece, pos.y + this._offset);
-            if (puzzle.RightConnection == EConnection.Out) {
+            if (puzzle.Right.LockType == ELockType.Out) {
                 this.drawPatternPiece(this._patternsAtlas, ctx, "vert-out", pos.x + this._sizeOfInnerPartOfPiece + this._offset, pos.y + this._offset);
             }
         }
 
-        if (puzzle.LeftConnection == EConnection.In) {
+        if (puzzle.Left.LockType == ELockType.In) {
             this.drawPatternPiece(this._patternsAtlas, ctx, "vert-in", pos.x + this._offset, pos.y + this._offset);
         }
         else {
             this.drawPatternPiece(this._patternsAtlas, ctx, "vert-solid", pos.x + this._offset, pos.y + this._offset);
 
-            if (puzzle.LeftConnection == EConnection.Out) {
+            if (puzzle.Left.LockType == ELockType.Out) {
                 this.drawPatternPiece(this._patternsAtlas, ctx, "vert-out", pos.x, pos.y + this._offset);
             }
         }
     }
 
-    private drawPuzzlePieceBorder(ctx: CanvasRenderingContext2D, pos: Point, puzzle: PuzzleConnections, adjacements: PieceAdjacements) {
-        if (!adjacements.Bottom) {
-            if (puzzle.BottomConnection == EConnection.In) {
-                this.drawnBorder(this._patternsAtlas, ctx, "horiz-in-bottom", pos.x + this._offset, pos.y + this._sizeOfInnerPartOfPiece);
-            }
-            else if (puzzle.BottomConnection == EConnection.Out) {
-                this.drawnBorder(this._patternsAtlas, ctx, "horiz-out-bottom", pos.x + this._offset, pos.y + this._sizeOfInnerPartOfPiece + this._offset);
-            }
-            else {
-                this.drawnBorder(this._patternsAtlas, ctx, "horiz-solid-bottom", pos.x + this._offset, pos.y + this._sizeOfInnerPartOfPiece);
-            }
+    private drawPuzzlePieceBorder(ctx: CanvasRenderingContext2D, pos: Point, puzzle: PuzzleLocks) {
+        if (puzzle.Bottom.LockType == ELockType.In) {
+            this.drawnBorder(this._patternsAtlas, ctx, "horiz-in-bottom", pos.x + this._offset, pos.y + this._sizeOfInnerPartOfPiece);
+        }
+        else if (puzzle.Bottom.LockType == ELockType.Out) {
+            this.drawnBorder(this._patternsAtlas, ctx, "horiz-out-bottom", pos.x + this._offset, pos.y + this._sizeOfInnerPartOfPiece + this._offset);
+        }
+        else {
+            this.drawnBorder(this._patternsAtlas, ctx, "horiz-solid-bottom", pos.x + this._offset, pos.y + this._sizeOfInnerPartOfPiece);
         }
 
-        if (!adjacements.Left) {
-            if (puzzle.LeftConnection == EConnection.In) {
-                this.drawnBorder(this._patternsAtlas, ctx, "vert-in-left", pos.x + this._offset, pos.y + this._offset);
-            }
-            else if (puzzle.LeftConnection == EConnection.Out) {
-                this.drawnBorder(this._patternsAtlas, ctx, "vert-out-left", pos.x, pos.y + this._offset);
-            }
-            else {
-                this.drawnBorder(this._patternsAtlas, ctx, "vert-solid-left", pos.x, pos.y + this._offset);
-            }
+        if (puzzle.Left.LockType == ELockType.In) {
+            this.drawnBorder(this._patternsAtlas, ctx, "vert-in-left", pos.x + this._offset, pos.y + this._offset);
+        }
+        else if (puzzle.Left.LockType == ELockType.Out) {
+            this.drawnBorder(this._patternsAtlas, ctx, "vert-out-left", pos.x, pos.y + this._offset);
+        }
+        else {
+            this.drawnBorder(this._patternsAtlas, ctx, "vert-solid-left", pos.x, pos.y + this._offset);
         }
 
-        if (!adjacements.Right) {
-            if (puzzle.RightConnection == EConnection.In) {
-                this.drawnBorder(this._patternsAtlas, ctx, "vert-in-right", pos.x + this._sizeOfInnerPartOfPiece, pos.y + this._offset);
-            }
-            else if (puzzle.RightConnection == EConnection.Out) {
-                this.drawnBorder(this._patternsAtlas, ctx, "vert-out-right", pos.x + this._sizeOfInnerPartOfPiece + this._offset, pos.y + this._offset);
-            }
-            else {
-                this.drawnBorder(this._patternsAtlas, ctx, "vert-solid-right", pos.x + this._sizeOfInnerPartOfPiece + this._offset, pos.y + this._offset);
-            }
+        if (puzzle.Right.LockType == ELockType.In) {
+            this.drawnBorder(this._patternsAtlas, ctx, "vert-in-right", pos.x + this._sizeOfInnerPartOfPiece, pos.y + this._offset);
+        }
+        else if (puzzle.Right.LockType == ELockType.Out) {
+            this.drawnBorder(this._patternsAtlas, ctx, "vert-out-right", pos.x + this._sizeOfInnerPartOfPiece + this._offset, pos.y + this._offset);
+        }
+        else {
+            this.drawnBorder(this._patternsAtlas, ctx, "vert-solid-right", pos.x + this._sizeOfInnerPartOfPiece + this._offset, pos.y + this._offset);
         }
 
-        if (!adjacements.Top) {
-            if (puzzle.TopConnection == EConnection.In) {
-                this.drawnBorder(this._patternsAtlas, ctx, "horiz-in-top", pos.x + this._offset, pos.y + this._offset);
-            }
-            else if (puzzle.TopConnection == EConnection.Out) {
-                this.drawnBorder(this._patternsAtlas, ctx, "horiz-out-top", pos.x + this._offset, pos.y);
-            }
-            else {
-                this.drawnBorder(this._patternsAtlas, ctx, "horiz-solid-top", pos.x + this._offset, pos.y + this._offset);
-            }
+        if (puzzle.Top.LockType == ELockType.In) {
+            this.drawnBorder(this._patternsAtlas, ctx, "horiz-in-top", pos.x + this._offset, pos.y + this._offset);
+        }
+        else if (puzzle.Top.LockType == ELockType.Out) {
+            this.drawnBorder(this._patternsAtlas, ctx, "horiz-out-top", pos.x + this._offset, pos.y);
+        }
+        else {
+            this.drawnBorder(this._patternsAtlas, ctx, "horiz-solid-top", pos.x + this._offset, pos.y + this._offset);
         }
     }
 }

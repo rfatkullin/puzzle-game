@@ -14,14 +14,15 @@ export default class Puzzle {
     public readonly Id: number;
     public readonly TargetPosition: Point;
     public readonly View: PuzzleView;
-    public readonly Pieces: PuzzlePiece[] = []
+    public readonly Pieces: PuzzlePiece[] = [];
+    public readonly Position: Point;
 
-    public constructor(id: number, 
+    public constructor(id: number,
         targetPosition: Point,
         pieces: PuzzlePiece[],
         view: PuzzleView) {
 
-        this.Id = id;        
+        this.Id = id;
         this.TargetPosition = targetPosition;
         this.View = view;
         this.Pieces = pieces;

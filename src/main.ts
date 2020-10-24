@@ -7,28 +7,33 @@ import backgroundImage from "./assets/background.jpg";
 
 import clickSound from "./assets/sound/click.wav";
 
-import PuzzleConnections from "./grid/puzzle_connections";
-import PuzzleGridMaker from "./grid/grid_maker";
+import PuzzleFieldMaker from "./field/game_field_maker";
 import Puzzle from "./contracts/puzzle";
 import PuzzleTextureMaker from "./view/puzzle_texture_maker";
 import Config from "./config";
 import PuzzleViewMaker from "./view/puzzle_view_maker";
-import GameGrid from "./grid/game_grid";
+import GameField from "./field/game_field";
 import SoundFx from './fx/sound_fx';
 import PuzzleView from "./contracts/puzzle_view";
 import PuzzleDragDetails from "./contracts/events/puzzle_drag_details";
-import PuzzlePiece from "./contracts/puzzle_piece";
+import PuzzlePieceOrigin from "./contracts/puzzle_piece_origin";
 import PuzzleMaker from "./view/puzzle_maker";
 
-import Point = Phaser.Geom.Point;
 import DebugDrawer from "./debug/debug_drawer";
+
+import Point = Phaser.Geom.Point;
 
 export default class Main extends Phaser.Scene {
 
   private _puzzles: Puzzle[] = [];
 
+  private _debugDrawer: DebugDrawer;
+  private _puzzleViewMaker;
+  private _puzzleTextureMaker: PuzzleTextureMaker;
   private _puzzleMaker: PuzzleMaker;
   private _soundFx: SoundFx;
+
+  private _fieldStartPosition: Point;
 
   public constructor(config) {
     super(config);
@@ -58,51 +63,15 @@ export default class Main extends Phaser.Scene {
     maskImg.src = this.textures.getBase64('patterns_atlas');
   }
 
-  private constructPuzzlePieces(grid: GameGrid, offsetToCenter: Point): PuzzlePiece[] {
-    const pieces: PuzzlePiece[] = [];
+  private showFieldShadow(targetImageHtmlImage: HTMLImageElement): void {
+    const { x, y } = this._fieldStartPosition;
 
-    let id: number = 0;
-    for (let i = 0; i < grid.Height; ++i) {
-      for (let j = 0; j < grid.Width; ++j) {
-
-        const targetImagePosition: Point = new Point((j + 0.5) * Config.InnerQuadSize, (i + 0.5) * Config.InnerQuadSize);
-        const fieldPosition = new Point(targetImagePosition.x + offsetToCenter.x, targetImagePosition.y + offsetToCenter.y);
-
-        const piece: PuzzlePiece = new PuzzlePiece(id++, targetImagePosition, fieldPosition, grid.Connections[i][j]);
-        pieces.push(piece);
-      }
-    }
-
-    for (let piece of pieces) {
-      const adjecentIds = [
-        piece.Id - 1,
-        piece.Id + 1,
-        piece.Id - grid.Width,
-        piece.Id + grid.Width
-      ]
-
-      const adjecentPieces: PuzzlePiece[] = adjecentIds.filter(id => id >= 0 && id < pieces.length)
-        .map(id => pieces[id]);
-
-      piece.addAdjacentPieces(adjecentPieces);
-    }
-
-    return pieces;
-  }
-
-  private showFieldShadow(position: Point, targetImageHtmlImage: HTMLImageElement): void {
     const background: Phaser.GameObjects.Image = this.add.image(0, 0, 'field_shadow')
       .setOrigin(0, 0)
-      .setPosition(position.x, position.y)
+      .setPosition(x, y)
       .setScale(targetImageHtmlImage.width, targetImageHtmlImage.height)
       .setTint(Config.FieldShadowTint)
       .setAlpha(Config.FieldShadowAlpha);
-  }
-
-  private getOffsetsToCenter(targetImageSize: { width: number, height: number }): Point {
-    return new Point(
-      (Config.CanvasWidth - targetImageSize.width) / 2,
-      (Config.CanvasHeight - targetImageSize.height) / 2);
   }
 
   private onPuzzleDrag(puzzleView: PuzzleView, eventDetails: PuzzleDragDetails): void {
@@ -128,46 +97,57 @@ export default class Main extends Phaser.Scene {
     }
   }
 
-  private getGrid(targetImage: HTMLImageElement): GameGrid {
+  private getField(targetImage: HTMLImageElement): GameField {
     const widthOfGrid: number = targetImage.width / Config.InnerQuadSize;
     const heightOfGrid: number = targetImage.height / Config.InnerQuadSize;
-    const puzzlesGrid: PuzzleConnections[][] = new PuzzleGridMaker().make(heightOfGrid, widthOfGrid);
+    const puzzlesGrid: PuzzlePieceOrigin[] = new PuzzleFieldMaker().make(heightOfGrid, widthOfGrid);
 
     return {
       Width: widthOfGrid,
       Height: heightOfGrid,
-      Connections: puzzlesGrid
+      Pieces: puzzlesGrid
     };
   }
 
   private runGame(patternsAtlas: HTMLImageElement, targetImage: HTMLImageElement) {
-    const grid: GameGrid = this.getGrid(targetImage);
-    const offsetToCenter: Point = this.getOffsetsToCenter(targetImage);
+    this.setFieldStartPosition(targetImage);
+    this.showFieldShadow(targetImage);
 
-    this.showFieldShadow(offsetToCenter, targetImage);
+    this._puzzleTextureMaker.setPatternsAndTarget(patternsAtlas, targetImage);
 
-    const pieces: PuzzlePiece[] = this.constructPuzzlePieces(grid, offsetToCenter);
-    const puzzleTextureMaker: PuzzleTextureMaker = new PuzzleTextureMaker(this.textures, patternsAtlas, targetImage);
+    const gameField: GameField = this.getField(targetImage);
 
-    this._puzzles = this._puzzleMaker.constructOriginPuzzles(pieces, grid.Width, puzzleTextureMaker);
+    this._puzzles = this._puzzleMaker.constructPuzzlesForGameStart(gameField.Pieces, gameField.Width, this._fieldStartPosition);
+  }
+
+  private setFieldStartPosition({ width, height }: { width: number, height: number }): void {
+    this._fieldStartPosition = new Point(
+      (Config.CanvasWidth - width) / 2,
+      (Config.CanvasHeight - height) / 2);
   }
 
   private create() {
-    this._soundFx = new SoundFx(this.sound);
+    this.initSubsystems();
 
-    const debugDrawer: DebugDrawer = new DebugDrawer(this.add);
-    const puzzleViewMaker = new PuzzleViewMaker(this.add, this.tweens, this.input);
-
-    puzzleViewMaker.DragEvent.subscribe(this.onPuzzleDrag)
-    puzzleViewMaker.DragEvent.subscribe(debugDrawer.onDragPuzzle);
-
-    this._puzzleMaker = new PuzzleMaker(puzzleViewMaker);
-
-    const background: Phaser.GameObjects.Image = this.add.image(0, 0, 'background')
+    this.add.image(0, 0, 'background')
       .setOrigin(0, 0)
       .setAlpha(0.5);
 
     this.loadImages(this.runGame);
+  }
+
+  private initSubsystems(): void {
+    this._soundFx = new SoundFx(this.sound);
+
+    this._debugDrawer = new DebugDrawer(this.add);
+
+    this._puzzleTextureMaker = new PuzzleTextureMaker(this.textures);
+
+    this._puzzleViewMaker = new PuzzleViewMaker(this.add, this.tweens, this.input);
+    this._puzzleViewMaker.DragEvent.subscribe(this.onPuzzleDrag)
+    this._puzzleViewMaker.DragEvent.subscribe(this._debugDrawer.onDragPuzzle);
+
+    this._puzzleMaker = new PuzzleMaker(this._puzzleViewMaker, this._puzzleTextureMaker);
   }
 }
 
