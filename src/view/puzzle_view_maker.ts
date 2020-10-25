@@ -53,7 +53,11 @@ export default class PuzzleViewMaker {
             .setOrigin(0.5, 0.5)
             .setName(id.toString());
 
-        puzzleSprite.setInteractive();
+        const inputSettings = {
+            pixelPerfect: true,
+            alphaTolerance: 0
+        }
+        puzzleSprite.setInteractive(inputSettings);
         this._inputManager.setDraggable(puzzleSprite);
 
         const puzzleView: PuzzleView = new PuzzleView(id, texture, targetPosition, puzzleSprite, puzzleShadowSprite, this._tweensManager);
