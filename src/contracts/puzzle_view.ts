@@ -44,11 +44,13 @@ export default class PuzzleView {
     }
 
     public onDragStart() {
+        this.setDepth(Config.Depths.OnDragPuzzle);
         this.startZoomInAnimation();
     }
 
     public onDragEnd() {
         this.startZoomOutAnimation();
+        this.setDepth(Config.Depths.OnFieldPuzzle);
     }
 
     public destroy(): void {
@@ -69,6 +71,11 @@ export default class PuzzleView {
 
         PuzzleView.startScaleInTween(this.MainSprite, this._tweensManager);
         PuzzleView.startScaleInTween(this.ShadowSprite, this._tweensManager);
+    }
+
+    private setDepth(depth: number): void {
+        this.MainSprite.setDepth(depth);
+        this.ShadowSprite.setDepth(depth);
     }
 
     private static startScaleOutTween(sprite: Phaser.GameObjects.Image, tweensManager: Phaser.Tweens.TweenManager): void {
@@ -93,5 +100,5 @@ export default class PuzzleView {
         return new Point(
             spritePosition.x + Config.PuzzleShadowOffset,
             spritePosition.y + Config.PuzzleShadowOffset);
-    }
+    }    
 }
