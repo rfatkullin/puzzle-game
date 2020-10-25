@@ -1,3 +1,4 @@
+import Config from "../config";
 import { ELockType } from "../contracts/lock/puzzle_elock_type";
 import PuzzleLock from "../contracts/lock/puzzle_lock";
 import Puzzle from "../contracts/puzzle";
@@ -18,21 +19,32 @@ export default class PuzzleMaker {
         this._textureMaker = textureMaker;
     }
 
-    public constructSinglePuzzle(id: number, originPieces: PuzzlePieceOrigin[], piecesPerRow: number, fieldStartPosition: Point): Puzzle {
+    public constructPuzzlesForGameStart(originPieces: PuzzlePieceOrigin[],
+        piecesPerRow: number,
+        fieldStartPosition: Point,
+        isPositionsRandomized: boolean = true,
+        isMerged: boolean = false): Puzzle[] {
+
         const pieces: PuzzlePiece[] = this.constructPieces(originPieces, fieldStartPosition);
+        let puzzles: Puzzle[];
 
-        const centerPosition = this.getPiecesCenterPoint(pieces);
-        const piecesTexture = this._textureMaker.generateTextureForPieces(id, pieces);
+        if (isMerged) {
+            puzzles = this.constructMergedPuzzles(pieces, piecesPerRow);
+        } else {
+            puzzles = pieces.map(piece => this.constructPuzzleFromPieces(piece.Id, [piece]));
+        }
 
-        const view: PuzzleView = this._viewMaker.constructPiecesView(id, centerPosition, piecesTexture, false);
-        const puzzle: Puzzle = new Puzzle(id, centerPosition, pieces, view);
+        if (isPositionsRandomized) {
+            puzzles.forEach(puzzle => {
+                const randomPosition = new Point(
+                    Math.random() * Config.CanvasWidth,
+                    Math.random() * Config.CanvasHeight);
 
-        return puzzle;
-    }
+                puzzle.View.setPosition(randomPosition)
+            });
+        }
 
-    public constructPuzzlesForGameStart(originPieces: PuzzlePieceOrigin[], piecesPerRow: number, fieldStartPosition: Point): Puzzle[] {
-        const pieces: PuzzlePiece[] = this.constructPieces(originPieces, fieldStartPosition);
-        return this.constructMergedPuzzles(pieces, piecesPerRow);
+        return puzzles;
     }
 
     public mergePuzzles(puzzle1: Puzzle, puzzle2: Puzzle): Puzzle {

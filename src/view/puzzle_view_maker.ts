@@ -35,15 +35,7 @@ export default class PuzzleViewMaker {
         this._inputManager.on('dragend', this.onDragEnd);
     }
 
-    public constructPiecesView(id: number, targetPosition: Point, texture: string, setRandomPositions: boolean = false): PuzzleView {
-        let position: Point = targetPosition;
-
-        if (setRandomPositions) {
-            position = new Point(
-                Math.random() * Config.CanvasWidth,
-                Math.random() * Config.CanvasHeight);
-        }
-
+    public constructPiecesView(id: number, targetPosition: Point, texture: string): PuzzleView {
         const puzzleShadowSprite: Phaser.GameObjects.Image = this._gameObjectFactory.image(0, 0, texture)
             .setOrigin(0.5, 0.5)
             .setAlpha(Config.PuzzleShadowAlpha)
@@ -61,7 +53,7 @@ export default class PuzzleViewMaker {
         this._inputManager.setDraggable(puzzleSprite);
 
         const puzzleView: PuzzleView = new PuzzleView(id, texture, targetPosition, puzzleSprite, puzzleShadowSprite, this._tweensManager);
-        puzzleView.setPosition(position);
+        puzzleView.setPosition(targetPosition);
 
         this._puzzleViewByName[puzzleSprite.name] = puzzleView;
 
@@ -75,9 +67,9 @@ export default class PuzzleViewMaker {
         }
 
         const puzzleView: PuzzleView = this._puzzleViewByName[puzzleId];
-        
+
         puzzleView.onDragStart();
-        
+
         var newPosition = new Point(pointer.x, pointer.y);
         this._dragEvent.dispatch(puzzleView, new PuzzleDragDetails('start', newPosition));
     }
@@ -107,7 +99,7 @@ export default class PuzzleViewMaker {
         }
 
         this.setViewPosition(puzzleView, pointer);
-        
+
         var newPosition = new Point(pointer.x, pointer.y);
         this._dragEvent.dispatch(puzzleView, new PuzzleDragDetails('drag', newPosition));
     }
