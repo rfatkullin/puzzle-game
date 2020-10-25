@@ -1,5 +1,6 @@
 import Config from "../config";
 import PuzzleDragDetails from "../contracts/events/puzzle_drag_details";
+import GameState from "../contracts/game_state";
 import Puzzle from "../contracts/puzzle";
 import PuzzlePiece from "../contracts/puzzle_piece";
 import PuzzleView from "../contracts/puzzle_view";
@@ -13,13 +14,15 @@ export default class DebugDrawer {
 
     private readonly _debugGraphics: Phaser.GameObjects.Graphics;
 
-    private _puzzles: Puzzle[];
+    private _gameState: GameState;
 
-    public constructor(objectFactory: ObjectFactory) {
+    public constructor(objectFactory: ObjectFactory, gameState: GameState) {
         if (Config.DebugDrawing.enabled) {
             this._debugGraphics = objectFactory.graphics(Config.DebugDrawing);
             this._debugGraphics.setDepth(DebugDrawer.GraphicsDepth);
         }
+
+        this._gameState = gameState;
 
         this.onDragPuzzle = this.onDragPuzzle.bind(this);
     }
@@ -37,10 +40,6 @@ export default class DebugDrawer {
         }
     }
 
-    public setPuzzles(puzzles: Puzzle[]): void {
-        this._puzzles = puzzles;
-    }
-
     private onDragEndPuzzle(): void {
         if (this._debugGraphics == null) {
             return;
@@ -56,7 +55,7 @@ export default class DebugDrawer {
 
         this._debugGraphics.clear();
 
-        const puzzle: Puzzle = this._puzzles.find(puzzle => puzzle.Id == puzzleId);
+        const puzzle: Puzzle = this._gameState.Puzzles.find(puzzle => puzzle.Id == puzzleId);
         this.drawLineToTargetPosition(puzzle.View);
         this.drawLinesToLocks(puzzle.Pieces);
     }

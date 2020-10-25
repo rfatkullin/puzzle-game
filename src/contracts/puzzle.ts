@@ -38,4 +38,8 @@ export default class Puzzle {
     public addAdjacentPuzzle(adjacentPuzzle: Puzzle): void {
         this._adjacentPuzzles.push(adjacentPuzzle);
     }
+
+    public destroy(): void {
+        this.View.destroy();
+    }
 }

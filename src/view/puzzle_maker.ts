@@ -22,7 +22,7 @@ export default class PuzzleMaker {
         const pieces: PuzzlePiece[] = this.constructPieces(originPieces, fieldStartPosition);
 
         const centerPosition = this.getPiecesCenterPoint(pieces);
-        const piecesTexture = this._textureMaker.generateTextureForPieces(id, pieces, piecesPerRow);
+        const piecesTexture = this._textureMaker.generateTextureForPieces(id, pieces);
 
         const view: PuzzleView = this._viewMaker.constructPiecesView(id, centerPosition, piecesTexture, false);
         const puzzle: Puzzle = new Puzzle(id, centerPosition, pieces, view);
@@ -35,6 +35,12 @@ export default class PuzzleMaker {
         return this.constructMergedPuzzles(pieces, piecesPerRow);
     }
 
+    public mergePuzzles(puzzle1: Puzzle, puzzle2: Puzzle): Puzzle {
+        const mergedPieces = puzzle1.Pieces.concat(puzzle2.Pieces);
+
+        return this.constructPuzzleFromPieces(puzzle1.Pieces[0].Id, mergedPieces);
+    }
+
     public constructMergedPuzzles(pieces: PuzzlePiece[], piecesPerRow: number): Puzzle[] {
         const result: Puzzle[] = []
         const piecesNumber: number = pieces.length;
@@ -45,21 +51,27 @@ export default class PuzzleMaker {
                 const puzzlePiecesNumber: number = 4;//Math.floor(Math.random() * 5) + 1 // Max 5 pieces in puzzle
                 const currentPuzzlePieces: PuzzlePiece[] = this.mergePieces(tempPieces[i].Id, tempPieces, piecesPerRow, puzzlePiecesNumber);
 
-                const piecesTexture = this._textureMaker.generateTextureForPieces(pieces[i].Id, currentPuzzlePieces, piecesPerRow);
-
-                const centerPosition: Point = this.getPiecesCenterPoint(currentPuzzlePieces);
-
-                const view: PuzzleView = this._viewMaker.constructPiecesView(pieces[i].Id, centerPosition, piecesTexture);
-
-                const puzzle: Puzzle = new Puzzle(pieces[i].Id, centerPosition, currentPuzzlePieces, view);
-
-                this.setPiecesParent(puzzle, currentPuzzlePieces);
+                const puzzle = this.constructPuzzleFromPieces(pieces[i].Id, currentPuzzlePieces);
 
                 result.push(puzzle);
             }
         }
 
         return result;
+    }
+
+    private constructPuzzleFromPieces(puzzleId: number, pieces: PuzzlePiece[]): Puzzle {
+        const piecesTexture = this._textureMaker.generateTextureForPieces(puzzleId, pieces);
+
+        const centerPosition: Point = this.getPiecesCenterPoint(pieces);
+
+        const view: PuzzleView = this._viewMaker.constructPiecesView(puzzleId, centerPosition, piecesTexture);
+
+        const puzzle: Puzzle = new Puzzle(puzzleId, centerPosition, pieces, view);
+
+        this.setPiecesParent(puzzle, pieces);
+
+        return puzzle;
     }
 
     private constructPieces(originPieces: PuzzlePieceOrigin[], fieldStartPosition: Point): PuzzlePiece[] {

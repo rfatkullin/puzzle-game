@@ -61,7 +61,7 @@ export default class PuzzleFieldMaker {
             locks.Left = new PuzzleLock(ELockType.None);
         }
 
-        if (index - width > 0) {
+        if (index - width >= 0) {
             const topPieceId: number = index - width;
             const lockType = this.getOppositeConnection(field[topPieceId].Bottom.LockType);
             locks.Top = new PuzzleLock(lockType, topPieceId);

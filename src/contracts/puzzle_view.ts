@@ -1,7 +1,5 @@
 import Config from "../config";
 
-import PuzzleDragDetails from "./events/puzzle_drag_details";
-
 import Point = Phaser.Geom.Point;
 
 export default class PuzzleView {
@@ -51,6 +49,13 @@ export default class PuzzleView {
 
     public onDragEnd() {
         this.startZoomOutAnimation();
+    }
+
+    public destroy(): void {
+        // TODO: destroy textures.
+        this.MainSprite.destroy();
+        this.ShadowSprite.destroy();
+
     }
 
     private startZoomInAnimation(): void {

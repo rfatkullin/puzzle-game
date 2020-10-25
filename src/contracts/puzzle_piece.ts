@@ -15,8 +15,9 @@ export default class PuzzlePiece {
     public Right: PuzzlePiece;
     public Bottom: PuzzlePiece;
 
+    public Parent: Puzzle;
+
     private _relativePosition: Point;
-    private _parent: Puzzle;
 
     public constructor(originPiece: PuzzlePieceOrigin, targetPositionOnField: Point) {
         this.Id = originPiece.Id;
@@ -61,7 +62,7 @@ export default class PuzzlePiece {
     }
 
     public setParent(parent: Puzzle, relativePosition: Point): void {
-        this._parent = parent;
+        this.Parent = parent;
         this._relativePosition = relativePosition;
     }
 
@@ -74,8 +75,8 @@ export default class PuzzlePiece {
 
     private getAbsolutePosition(): Point {
         return new Point(
-            this._relativePosition.x + this._parent.View.MainSprite.x,
-            this._relativePosition.y + this._parent.View.MainSprite.y
+            this._relativePosition.x + this.Parent.View.MainSprite.x,
+            this._relativePosition.y + this.Parent.View.MainSprite.y
         );
     }
 }

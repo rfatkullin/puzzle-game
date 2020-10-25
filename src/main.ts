@@ -22,24 +22,28 @@ import PuzzleMaker from "./view/puzzle_maker";
 import DebugDrawer from "./debug/debug_drawer";
 
 import Point = Phaser.Geom.Point;
+import Distance = Phaser.Math.Distance;
+import GameState from "./contracts/game_state";
 
 export default class Main extends Phaser.Scene {
 
-  private _puzzles: Puzzle[] = [];
-
   private _debugDrawer: DebugDrawer;
-  private _puzzleViewMaker;
+  private _puzzleViewMaker: PuzzleViewMaker;
   private _puzzleTextureMaker: PuzzleTextureMaker;
   private _puzzleMaker: PuzzleMaker;
   private _soundFx: SoundFx;
 
   private _fieldStartPosition: Point;
 
+  private _gameState: GameState;
+
   public constructor(config) {
     super(config);
 
     this.runGame = this.runGame.bind(this);
     this.onPuzzleDrag = this.onPuzzleDrag.bind(this);
+
+    this._gameState = new GameState();
   }
 
   private preload() {
@@ -89,12 +93,82 @@ export default class Main extends Phaser.Scene {
   }
 
   private onPuzzleDragEnd(puzzleView: PuzzleView, newPosition: Point): void {
-    const puzzle: Puzzle = this._puzzles.find(puzzle => puzzle.Id == puzzleView.PuzzleId);
-    const distance: number = Phaser.Math.Distance.BetweenPoints(puzzle.TargetPosition, newPosition);
+    const puzzle: Puzzle = this._gameState.Puzzles.find(puzzle => puzzle.Id == puzzleView.PuzzleId);
+    const distanceToTargetPosition: number = Distance.BetweenPoints(puzzle.TargetPosition, newPosition);
 
-    if (distance < Config.MinDistanceToAutoPut) {
+    if (distanceToTargetPosition < Config.MinDistanceToAutoPut) {
       puzzle.putOnTargetPosition();
     }
+    else {
+      const { distance, puzzle: closestPuzzle } = this.findClosestPuzzle(puzzle);
+      if (distance < Config.MinDistanceToAutoPut) {
+        const mergedPuzzle: Puzzle = this._puzzleMaker.mergePuzzles(puzzle, closestPuzzle);
+
+        const newPuzzles: Puzzle[] = this._gameState.Puzzles.filter(p => p.Id != puzzle.Id && p.Id != closestPuzzle.Id)
+          .concat([mergedPuzzle]);
+
+
+        this._gameState.setPuzzles(newPuzzles);
+
+        const oldPosition: Point = closestPuzzle.View.getPosition();
+        const positionShift: Point = new Point(
+          closestPuzzle.TargetPosition.x - mergedPuzzle.TargetPosition.x,
+          closestPuzzle.TargetPosition.y - mergedPuzzle.TargetPosition.y);
+        const newPosition: Point = new Point(
+          oldPosition.x - positionShift.x,
+          oldPosition.y - positionShift.y
+        );
+
+        mergedPuzzle.View.setPosition(newPosition);
+
+        puzzle.destroy();
+        closestPuzzle.destroy();
+      }
+    }
+  }
+
+  private findClosestPuzzle(puzzle: Puzzle): { distance: number, puzzle: Puzzle } {
+    const piecesIds: number[] = puzzle.Pieces.map(piece => piece.Id);
+    const candidates: { distance: number, puzzle: Puzzle }[] = [];
+
+    for (let piece of puzzle.Pieces) {
+      if (piece.Left && piecesIds.indexOf(piece.Left.Id) < 0) {
+        candidates.push({
+          distance: Distance.BetweenPoints(piece.getLeftLockPosition(), piece.Left.getRightLockPosition()),
+          puzzle: piece.Left.Parent
+        })
+      }
+
+      if (piece.Top && piecesIds.indexOf(piece.Top.Id) < 0) {
+        candidates.push({
+          distance: Distance.BetweenPoints(piece.getTopLockPosition(), piece.Top.getBottomLockPosition()),
+          puzzle: piece.Top.Parent
+        })
+      }
+
+      if (piece.Right && piecesIds.indexOf(piece.Right.Id) < 0) {
+        candidates.push({
+          distance: Distance.BetweenPoints(piece.getRightLockPosition(), piece.Right.getLeftLockPosition()),
+          puzzle: piece.Right.Parent
+        })
+      }
+
+      if (piece.Bottom && piecesIds.indexOf(piece.Bottom.Id) < 0) {
+        candidates.push({
+          distance: Distance.BetweenPoints(piece.getBottomLockPosition(), piece.Bottom.getTopLockPosition()),
+          puzzle: piece.Bottom.Parent
+        })
+      }
+    }
+
+    let closestCandidateIndex = 0;
+    for (let i = 1; i < candidates.length; ++i) {
+      if (candidates[i].distance < candidates[closestCandidateIndex].distance) {
+        closestCandidateIndex = i;
+      }
+    }
+
+    return candidates[closestCandidateIndex];
   }
 
   private getField(targetImage: HTMLImageElement): GameField {
@@ -117,9 +191,8 @@ export default class Main extends Phaser.Scene {
 
     const gameField: GameField = this.getField(targetImage);
 
-    this._puzzles = this._puzzleMaker.constructPuzzlesForGameStart(gameField.Pieces, gameField.Width, this._fieldStartPosition);
-
-    this._debugDrawer.setPuzzles(this._puzzles);
+    const puzzles: Puzzle[] = this._puzzleMaker.constructPuzzlesForGameStart(gameField.Pieces, gameField.Width, this._fieldStartPosition);
+    this._gameState.setPuzzles(puzzles);
   }
 
   private setFieldStartPosition({ width, height }: { width: number, height: number }): void {
@@ -141,7 +214,7 @@ export default class Main extends Phaser.Scene {
   private initSubsystems(): void {
     this._soundFx = new SoundFx(this.sound);
 
-    this._debugDrawer = new DebugDrawer(this.add);
+    this._debugDrawer = new DebugDrawer(this.add, this._gameState);
 
     this._puzzleTextureMaker = new PuzzleTextureMaker(this.textures);
 

@@ -59,9 +59,13 @@ export default class PuzzleTextureMaker {
         this._target = newTarget;
     }
 
-    public generateTextureForPieces(id: number, pieces: PuzzlePiece[], piecesPerRow: number): string {
+    public generateTextureForPieces(id: number, pieces: PuzzlePiece[]): string {
         const textureId: string = `puzzlePiece-${id}`;
         const { leftTop, rightBottom } = this.getBoundaries(pieces);
+
+        if (this._textureManager.exists(textureId)) {
+            this._textureManager.remove(textureId)
+        }
 
         const canvas: Phaser.Textures.CanvasTexture = this._textureManager.createCanvas(
             textureId,
@@ -99,6 +103,8 @@ export default class PuzzleTextureMaker {
 
         canvasContext.globalCompositeOperation = 'source-over';
 
+        const piecesIds = new Set(pieces.map(piece => piece.Id));
+        const isPieceInPuzzle = pieceId => piecesIds.has(pieceId);
         for (let piece of pieces) {
             const offset = new Point(
                 piece.Origin.TargetImagePosition.x - leftX,
@@ -106,7 +112,8 @@ export default class PuzzleTextureMaker {
 
             this.drawPuzzlePieceBorder(canvasContext,
                 offset,
-                piece.Origin.Locks);
+                piece.Origin.Locks,
+                isPieceInPuzzle);
         }
 
         canvasContext.save();
@@ -131,34 +138,6 @@ export default class PuzzleTextureMaker {
             leftTop: new Point(left - quadHalf, top - quadHalf),
             rightBottom: new Point(right + quadHalf, bottom + quadHalf)
         };
-    }
-
-    public generateTextureForPuzzle(puzzleId: number, positionOnTarget: Point, connections: PuzzleLocks): string {
-        const textureId: string = `puzzlePiece-${puzzleId}`;
-        const canvas: Phaser.Textures.CanvasTexture = this._textureManager.createCanvas(
-            textureId,
-            this._pieceSize,
-            this._pieceSize,
-        );
-        const canvasContext: CanvasRenderingContext2D = canvas.context;
-
-        this.drawPuzzlePieceMask(canvasContext, new Point(0, 0), connections);
-
-        canvasContext.globalCompositeOperation = 'source-in';
-
-        const mostLeft: number = positionOnTarget.x - Config.PuzzleTotalSize / 2;
-        const mostTop: number = positionOnTarget.y - Config.PuzzleTotalSize / 2;
-
-        canvasContext.drawImage(this._target, mostLeft, mostTop, Config.PuzzleTotalSize, Config.PuzzleTotalSize, 0, 0, Config.PuzzleTotalSize, Config.PuzzleTotalSize);
-
-        canvasContext.globalCompositeOperation = 'source-over';
-
-        this.drawPuzzlePieceBorder(canvasContext, new Point(0, 0), connections);
-
-        canvasContext.save();
-        canvas.refresh();
-
-        return textureId;
     }
 
     private drawPatternPiece(patternsImage: HTMLImageElement, ctx: CanvasRenderingContext2D, pieceName: string, x: number, y: number) {
@@ -218,45 +197,53 @@ export default class PuzzleTextureMaker {
         }
     }
 
-    private drawPuzzlePieceBorder(ctx: CanvasRenderingContext2D, pos: Point, puzzle: PuzzleLocks) {
-        if (puzzle.Bottom.LockType == ELockType.In) {
-            this.drawnBorder(this._patternsAtlas, ctx, "horiz-in-bottom", pos.x + this._offset, pos.y + this._sizeOfInnerPartOfPiece);
-        }
-        else if (puzzle.Bottom.LockType == ELockType.Out) {
-            this.drawnBorder(this._patternsAtlas, ctx, "horiz-out-bottom", pos.x + this._offset, pos.y + this._sizeOfInnerPartOfPiece + this._offset);
-        }
-        else {
-            this.drawnBorder(this._patternsAtlas, ctx, "horiz-solid-bottom", pos.x + this._offset, pos.y + this._sizeOfInnerPartOfPiece);
-        }
-
-        if (puzzle.Left.LockType == ELockType.In) {
-            this.drawnBorder(this._patternsAtlas, ctx, "vert-in-left", pos.x + this._offset, pos.y + this._offset);
-        }
-        else if (puzzle.Left.LockType == ELockType.Out) {
-            this.drawnBorder(this._patternsAtlas, ctx, "vert-out-left", pos.x, pos.y + this._offset);
-        }
-        else {
-            this.drawnBorder(this._patternsAtlas, ctx, "vert-solid-left", pos.x, pos.y + this._offset);
+    private drawPuzzlePieceBorder(ctx: CanvasRenderingContext2D, pos: Point, puzzle: PuzzleLocks, isPieceInPuzzle: (id: number) => boolean) {
+        if (!isPieceInPuzzle(puzzle.Bottom.PieceId)) {
+            if (puzzle.Bottom.LockType == ELockType.In) {
+                this.drawnBorder(this._patternsAtlas, ctx, "horiz-in-bottom", pos.x + this._offset, pos.y + this._sizeOfInnerPartOfPiece);
+            }
+            else if (puzzle.Bottom.LockType == ELockType.Out) {
+                this.drawnBorder(this._patternsAtlas, ctx, "horiz-out-bottom", pos.x + this._offset, pos.y + this._sizeOfInnerPartOfPiece + this._offset);
+            }
+            else {
+                this.drawnBorder(this._patternsAtlas, ctx, "horiz-solid-bottom", pos.x + this._offset, pos.y + this._sizeOfInnerPartOfPiece);
+            }
         }
 
-        if (puzzle.Right.LockType == ELockType.In) {
-            this.drawnBorder(this._patternsAtlas, ctx, "vert-in-right", pos.x + this._sizeOfInnerPartOfPiece, pos.y + this._offset);
-        }
-        else if (puzzle.Right.LockType == ELockType.Out) {
-            this.drawnBorder(this._patternsAtlas, ctx, "vert-out-right", pos.x + this._sizeOfInnerPartOfPiece + this._offset, pos.y + this._offset);
-        }
-        else {
-            this.drawnBorder(this._patternsAtlas, ctx, "vert-solid-right", pos.x + this._sizeOfInnerPartOfPiece + this._offset, pos.y + this._offset);
+        if (!isPieceInPuzzle(puzzle.Left.PieceId)) {
+            if (puzzle.Left.LockType == ELockType.In) {
+                this.drawnBorder(this._patternsAtlas, ctx, "vert-in-left", pos.x + this._offset, pos.y + this._offset);
+            }
+            else if (puzzle.Left.LockType == ELockType.Out) {
+                this.drawnBorder(this._patternsAtlas, ctx, "vert-out-left", pos.x, pos.y + this._offset);
+            }
+            else {
+                this.drawnBorder(this._patternsAtlas, ctx, "vert-solid-left", pos.x, pos.y + this._offset);
+            }
         }
 
-        if (puzzle.Top.LockType == ELockType.In) {
-            this.drawnBorder(this._patternsAtlas, ctx, "horiz-in-top", pos.x + this._offset, pos.y + this._offset);
+        if (!isPieceInPuzzle(puzzle.Right.PieceId)) {
+            if (puzzle.Right.LockType == ELockType.In) {
+                this.drawnBorder(this._patternsAtlas, ctx, "vert-in-right", pos.x + this._sizeOfInnerPartOfPiece, pos.y + this._offset);
+            }
+            else if (puzzle.Right.LockType == ELockType.Out) {
+                this.drawnBorder(this._patternsAtlas, ctx, "vert-out-right", pos.x + this._sizeOfInnerPartOfPiece + this._offset, pos.y + this._offset);
+            }
+            else {
+                this.drawnBorder(this._patternsAtlas, ctx, "vert-solid-right", pos.x + this._sizeOfInnerPartOfPiece + this._offset, pos.y + this._offset);
+            }
         }
-        else if (puzzle.Top.LockType == ELockType.Out) {
-            this.drawnBorder(this._patternsAtlas, ctx, "horiz-out-top", pos.x + this._offset, pos.y);
-        }
-        else {
-            this.drawnBorder(this._patternsAtlas, ctx, "horiz-solid-top", pos.x + this._offset, pos.y + this._offset);
+
+        if (!isPieceInPuzzle(puzzle.Top.PieceId)) {
+            if (puzzle.Top.LockType == ELockType.In) {
+                this.drawnBorder(this._patternsAtlas, ctx, "horiz-in-top", pos.x + this._offset, pos.y + this._offset);
+            }
+            else if (puzzle.Top.LockType == ELockType.Out) {
+                this.drawnBorder(this._patternsAtlas, ctx, "horiz-out-top", pos.x + this._offset, pos.y);
+            }
+            else {
+                this.drawnBorder(this._patternsAtlas, ctx, "horiz-solid-top", pos.x + this._offset, pos.y + this._offset);
+            }
         }
     }
 }
