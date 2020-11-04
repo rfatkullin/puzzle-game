@@ -29,6 +29,9 @@ export default class Config {
 
 
     public static readonly Depths = {
+        Background: 0,
+        Field: 1,
+        OnTargetPositionPuzzle: 2,
         OnFieldPuzzle: 10,
         OnDragPuzzle: 20
     };

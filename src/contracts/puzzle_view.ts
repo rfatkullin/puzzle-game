@@ -29,6 +29,8 @@ export default class PuzzleView {
         this.ShadowSprite = shadowSprite;
 
         this._tweensManager = tweensManager;
+
+        this.setDepth(Config.Depths.OnFieldPuzzle);
     }
 
     public getPosition(): Point {
@@ -63,6 +65,10 @@ export default class PuzzleView {
     public switchOffInteractivity(): void {
         this.MainSprite.disableInteractive();
         this.ShadowSprite.disableInteractive();
+    }
+
+    public onTargetPosition(): void {
+        this.setDepth(Config.Depths.OnTargetPositionPuzzle)
     }
 
     private startZoomInAnimation(): void {

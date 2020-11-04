@@ -75,7 +75,8 @@ export default class Main extends Phaser.Scene {
       .setPosition(x, y)
       .setScale(targetImageHtmlImage.width, targetImageHtmlImage.height)
       .setTint(Config.FieldShadowTint)
-      .setAlpha(Config.FieldShadowAlpha);
+      .setAlpha(Config.FieldShadowAlpha)
+      .setDepth(Config.Depths.Field);
   }
 
   private onPuzzleDrag(puzzleView: PuzzleView, eventDetails: PuzzleDragDetails): void {
@@ -248,7 +249,8 @@ export default class Main extends Phaser.Scene {
 
     this.add.image(0, 0, 'background')
       .setOrigin(0, 0)
-      .setAlpha(0.5);
+      .setAlpha(0.5)
+      .setDepth(Config.Depths.Background);
 
     this.loadImages(this.runGame);
   }
