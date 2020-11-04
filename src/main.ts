@@ -125,6 +125,7 @@ export default class Main extends Phaser.Scene {
     else {
       const { distance, puzzle: closestPuzzle } = this.findClosestPuzzle(puzzle);
       if (distance < Config.MinDistanceToAutoPut) {
+        const mustBeAtTargetPosition: boolean = closestPuzzle.IsOnTargetPosition;
         const closestPuzzlePosition: Point = closestPuzzle.View.getPosition();
         const closestPuzzleTargetPosition: Point = closestPuzzle.TargetPosition;
 
@@ -138,7 +139,12 @@ export default class Main extends Phaser.Scene {
           closestPuzzlePosition.y - positionShift.y
         );
 
-        mergedPuzzle.View.setPosition(newPosition);
+        if (mustBeAtTargetPosition) {
+          mergedPuzzle.putOnTargetPosition();
+        } else {
+          mergedPuzzle.View.setPosition(newPosition);
+        }
+
 
         return true;
       }

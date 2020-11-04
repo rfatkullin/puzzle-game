@@ -19,7 +19,7 @@ export default class Config {
     public static readonly PuzzleScalingOutAnimzationEase: string = 'Cubic.Out';
     public static readonly PuzzleScalingInAnimzationEase: string = 'Linear';
 
-    public static readonly MinDistanceToAutoPut: number = 60;
+    public static readonly MinDistanceToAutoPut: number = 20;
 
     public static readonly FieldShadowAlpha: number = 0.2;
     public static readonly FieldShadowTint: number = 0x00E819;
