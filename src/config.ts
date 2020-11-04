@@ -27,13 +27,29 @@ export default class Config {
     // Debug
     public static readonly DebugLineStyle = { width: 2, color: 0xffffff };
 
+    public static readonly Tints = {
+        Menu: {
+            HelpButton: 0xCCCCCC
+        }
+    }
+
+    public static readonly Scales = {
+        Menu: {
+            ShowButton: 0.7,
+            ShowButtonAnimated: 0.9,
+            HelpButton: 0.7,
+            HelpButtonAnimated: 0.9
+        },
+        MiniTarget: 0.6
+    }
 
     public static readonly Depths = {
         Background: 0,
         Field: 1,
         OnTargetPositionPuzzle: 2,
         OnFieldPuzzle: 10,
-        OnDragPuzzle: 20
+        OnDragPuzzle: 20,
+        Menu: 30
     };
 
     public static readonly DebugDrawing = {

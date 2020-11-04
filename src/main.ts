@@ -5,6 +5,9 @@ import fieldShadowImage from "./assets/field_shadow.png";
 import patternsAtlasSourceImage from "./assets/patterns_atlas.png";
 import backgroundImage from "./assets/background.jpg";
 
+import showButtonIcon from "./assets/icons/picture.png";
+import helpButtonIcon from "./assets/icons/help.png";
+
 import clickSound from "./assets/sound/click.wav";
 
 import PuzzleFieldMaker from "./field/game_field_maker";
@@ -24,6 +27,7 @@ import DebugDrawer from "./debug/debug_drawer";
 import Point = Phaser.Geom.Point;
 import Distance = Phaser.Math.Distance;
 import GameState from "./contracts/game_state";
+import Menu from "./menu";
 
 export default class Main extends Phaser.Scene {
 
@@ -31,6 +35,7 @@ export default class Main extends Phaser.Scene {
   private _puzzleViewMaker: PuzzleViewMaker;
   private _puzzleTextureMaker: PuzzleTextureMaker;
   private _puzzleMaker: PuzzleMaker;
+  private _menu: Menu;
   private _soundFx: SoundFx;
 
   private _fieldStartPosition: Point;
@@ -51,6 +56,9 @@ export default class Main extends Phaser.Scene {
     this.load.image("background", backgroundImage);
     this.load.image("patterns_atlas", patternsAtlasSourceImage);
     this.load.image("field_shadow", fieldShadowImage);
+    
+    this.load.image("showButton", showButtonIcon);
+    this.load.image("helpButton", helpButtonIcon);
 
     this.load.audio('click', clickSound);
   }
@@ -252,6 +260,8 @@ export default class Main extends Phaser.Scene {
       .setAlpha(0.5)
       .setDepth(Config.Depths.Background);
 
+    this._menu.show();
+
     this.loadImages(this.runGame);
   }
 
@@ -267,6 +277,8 @@ export default class Main extends Phaser.Scene {
     this._puzzleViewMaker.DragEvent.subscribe(this._debugDrawer.onDragPuzzle);
 
     this._puzzleMaker = new PuzzleMaker(this._puzzleViewMaker, this._puzzleTextureMaker);
+
+    this._menu = new Menu(this.add, this.tweens);
   }
 }
 

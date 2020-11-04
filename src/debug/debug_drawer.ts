@@ -17,10 +17,8 @@ export default class DebugDrawer {
     private _gameState: GameState;
 
     public constructor(objectFactory: ObjectFactory, gameState: GameState) {
-        if (Config.DebugDrawing.enabled) {
-            this._debugGraphics = objectFactory.graphics(Config.DebugDrawing);
-            this._debugGraphics.setDepth(DebugDrawer.GraphicsDepth);
-        }
+        this._debugGraphics = objectFactory.graphics(Config.DebugDrawing);
+        this._debugGraphics.setDepth(DebugDrawer.GraphicsDepth);
 
         this._gameState = gameState;
 
@@ -41,7 +39,7 @@ export default class DebugDrawer {
     }
 
     private onDragEndPuzzle(): void {
-        if (this._debugGraphics == null) {
+        if (!Config.DebugDrawing.enabled) {
             return;
         }
 
@@ -49,7 +47,7 @@ export default class DebugDrawer {
     }
 
     private drawTargetLines(puzzleId: number): void {
-        if (this._debugGraphics == null) {
+        if (!Config.DebugDrawing.enabled) {
             return;
         }
 
