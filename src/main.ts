@@ -7,8 +7,10 @@ import backgroundImage from "./assets/background.jpg";
 
 import showButtonIcon from "./assets/icons/picture.png";
 import helpButtonIcon from "./assets/icons/help.png";
+import soundButtonIcon from "./assets/icons/sound.png";
 
 import clickSound from "./assets/sound/click.wav";
+import fittedClickSound from "./assets/sound/fitted_click.wav";
 
 import PuzzleFieldMaker from "./field/game_field_maker";
 import Puzzle from "./contracts/puzzle";
@@ -56,11 +58,13 @@ export default class Main extends Phaser.Scene {
     this.load.image("background", backgroundImage);
     this.load.image("patterns_atlas", patternsAtlasSourceImage);
     this.load.image("field_shadow", fieldShadowImage);
-    
+
     this.load.image("showButton", showButtonIcon);
     this.load.image("helpButton", helpButtonIcon);
+    this.load.image("soundButton", soundButtonIcon);
 
     this.load.audio('click', clickSound);
+    this.load.audio('fitted_click', fittedClickSound);
   }
 
   private loadImages(callback: (maskImg: HTMLImageElement, backgroundImage: HTMLImageElement) => void) {
@@ -90,18 +94,18 @@ export default class Main extends Phaser.Scene {
   private onPuzzleDrag(puzzleView: PuzzleView, eventDetails: PuzzleDragDetails): void {
     switch (eventDetails.Event) {
       case 'end':
-        this.onPuzzleDragEnd(puzzleView, eventDetails.Position);
-        this._soundFx.onPuzzleDrag(eventDetails.Event);
+        const isSuccess: boolean = this.onPuzzleDragEnd(puzzleView, eventDetails.Position);
+        this._soundFx.onPuzzleDragEnd(isSuccess);
         break;
       case 'start':
-        this._soundFx.onPuzzleDrag(eventDetails.Event);
+        this._soundFx.onPuzzleDrag();
         break;
       default:
         break;
     }
   }
 
-  private onPuzzleDragEnd(puzzleView: PuzzleView, newPosition: Point): void {
+  private onPuzzleDragEnd(puzzleView: PuzzleView, newPosition: Point): boolean {
     const puzzle: Puzzle = this._gameState.Puzzles.find(puzzle => puzzle.Id == puzzleView.PuzzleId);
     const distanceToTargetPosition: number = Distance.BetweenPoints(puzzle.TargetPosition, newPosition);
 
@@ -115,6 +119,8 @@ export default class Main extends Phaser.Scene {
       else {
         puzzle.putOnTargetPosition();
       }
+
+      return true;
     }
     else {
       const { distance, puzzle: closestPuzzle } = this.findClosestPuzzle(puzzle);
@@ -133,8 +139,12 @@ export default class Main extends Phaser.Scene {
         );
 
         mergedPuzzle.View.setPosition(newPosition);
+
+        return true;
       }
     }
+
+    return false;
   }
 
   private mergePuzzles(puzzles: Puzzle[]): Puzzle {
@@ -278,7 +288,7 @@ export default class Main extends Phaser.Scene {
 
     this._puzzleMaker = new PuzzleMaker(this._puzzleViewMaker, this._puzzleTextureMaker);
 
-    this._menu = new Menu(this.add, this.tweens);
+    this._menu = new Menu(this.add, this.tweens, this._soundFx);
   }
 }
 

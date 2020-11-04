@@ -29,19 +29,22 @@ export default class Config {
 
     public static readonly Tints = {
         Menu: {
-            HelpButton: 0xCCCCCC
+            HelpButton: 0xCCCCCC,
+            SoundButton: 0xCCCCCC
         }
-    }
+    };
 
     public static readonly Scales = {
         Menu: {
             ShowButton: 0.7,
             ShowButtonAnimated: 0.9,
             HelpButton: 0.7,
-            HelpButtonAnimated: 0.9
+            HelpButtonAnimated: 0.9,
+            SoundButton: 0.7,
+            SoundButtonAnimated: 0.9
         },
         MiniTarget: 0.6
-    }
+    };
 
     public static readonly Depths = {
         Background: 0,
@@ -50,6 +53,10 @@ export default class Config {
         OnFieldPuzzle: 10,
         OnDragPuzzle: 20,
         Menu: 30
+    };
+
+    public static readonly Sound = {
+        enabled: true
     };
 
     public static readonly DebugDrawing = {
