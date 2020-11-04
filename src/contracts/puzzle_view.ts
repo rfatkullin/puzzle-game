@@ -60,6 +60,11 @@ export default class PuzzleView {
 
     }
 
+    public switchOffInteractivity(): void {
+        this.MainSprite.disableInteractive();
+        this.ShadowSprite.disableInteractive();
+    }
+
     private startZoomInAnimation(): void {
         PuzzleView.startScaleOutTween(this.MainSprite, this._tweensManager);
         PuzzleView.startScaleOutTween(this.ShadowSprite, this._tweensManager);

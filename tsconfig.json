@@ -1,12 +1,25 @@
 {
 	"compilerOptions": {
 		"target": "es5",
+		"lib": [
+			"es2019"
+		],
 		"module": "commonjs",
 		"sourceMap": true,
 		"esModuleInterop": true,
-		"allowSyntheticDefaultImports": true,		
-		"typeRoots": ["./typings/custom", "./node_modules/@types"]
+		"allowSyntheticDefaultImports": true,
+		"typeRoots": [
+			"./typings/custom",
+			"./node_modules/@types"
+		]
 	},
-	"include": ["./src/**/*.ts", "./typings/custom"],
-  	"exclude": ["dist", "build", "node_modules"]
+	"include": [
+		"./src/**/*.ts",
+		"./typings/custom"
+	],
+	"exclude": [
+		"dist",
+		"build",
+		"node_modules"
+	]
 }

@@ -47,10 +47,9 @@ export default class PuzzleMaker {
         return puzzles;
     }
 
-    public mergePuzzles(puzzle1: Puzzle, puzzle2: Puzzle): Puzzle {
-        const mergedPieces = puzzle1.Pieces.concat(puzzle2.Pieces);
-
-        return this.constructPuzzleFromPieces(puzzle1.Pieces[0].Id, mergedPieces);
+    public mergePuzzles(puzzles: Puzzle[]): Puzzle {
+        const pieces: PuzzlePiece[] = puzzles.flatMap(puzzle => puzzle.Pieces);
+        return this.constructPuzzleFromPieces(puzzles[0].Pieces[0].Id, pieces);
     }
 
     public constructMergedPuzzles(pieces: PuzzlePiece[], piecesPerRow: number): Puzzle[] {

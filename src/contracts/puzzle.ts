@@ -32,6 +32,7 @@ export default class Puzzle {
 
     public putOnTargetPosition(): void {
         this.View.setPosition(this.TargetPosition);
+        this.View.switchOffInteractivity();
         this._isOnTargetPosition = true;
     }
 

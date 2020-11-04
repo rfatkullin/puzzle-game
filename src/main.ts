@@ -97,34 +97,76 @@ export default class Main extends Phaser.Scene {
     const distanceToTargetPosition: number = Distance.BetweenPoints(puzzle.TargetPosition, newPosition);
 
     if (distanceToTargetPosition < Config.MinDistanceToAutoPut) {
-      puzzle.putOnTargetPosition();
+      const adjacentPuzzles: Puzzle[] = this.findAllAdjacentPuzzlesOnTargetPosition(puzzle);
+      if (adjacentPuzzles.length > 0) {
+        adjacentPuzzles.push(puzzle);
+        const mergedPuzzle: Puzzle = this.mergePuzzles(adjacentPuzzles);
+        mergedPuzzle.putOnTargetPosition();
+      }
+      else {
+        puzzle.putOnTargetPosition();
+      }
     }
     else {
       const { distance, puzzle: closestPuzzle } = this.findClosestPuzzle(puzzle);
       if (distance < Config.MinDistanceToAutoPut) {
-        const mergedPuzzle: Puzzle = this._puzzleMaker.mergePuzzles(puzzle, closestPuzzle);
+        const closestPuzzlePosition: Point = closestPuzzle.View.getPosition();
+        const closestPuzzleTargetPosition: Point = closestPuzzle.TargetPosition;
 
-        const newPuzzles: Puzzle[] = this._gameState.Puzzles.filter(p => p.Id != puzzle.Id && p.Id != closestPuzzle.Id)
-          .concat([mergedPuzzle]);
+        const mergedPuzzle: Puzzle = this.mergePuzzles([puzzle, closestPuzzle]);
 
-
-        this._gameState.setPuzzles(newPuzzles);
-
-        const oldPosition: Point = closestPuzzle.View.getPosition();
         const positionShift: Point = new Point(
-          closestPuzzle.TargetPosition.x - mergedPuzzle.TargetPosition.x,
-          closestPuzzle.TargetPosition.y - mergedPuzzle.TargetPosition.y);
+          closestPuzzleTargetPosition.x - mergedPuzzle.TargetPosition.x,
+          closestPuzzleTargetPosition.y - mergedPuzzle.TargetPosition.y);
         const newPosition: Point = new Point(
-          oldPosition.x - positionShift.x,
-          oldPosition.y - positionShift.y
+          closestPuzzlePosition.x - positionShift.x,
+          closestPuzzlePosition.y - positionShift.y
         );
 
         mergedPuzzle.View.setPosition(newPosition);
-
-        puzzle.destroy();
-        closestPuzzle.destroy();
       }
     }
+  }
+
+  private mergePuzzles(puzzles: Puzzle[]): Puzzle {
+    const mergedPuzzle: Puzzle = this._puzzleMaker.mergePuzzles(puzzles);
+
+    const newPuzzles: Puzzle[] = this._gameState.Puzzles.filter(p => puzzles.findIndex(puzzle => puzzle.Id === p.Id) < 0);
+    newPuzzles.push(mergedPuzzle);
+
+    this._gameState.setPuzzles(newPuzzles);
+
+    puzzles.forEach(puzzle => puzzle.destroy());
+
+    return mergedPuzzle;
+  }
+
+  private findAllAdjacentPuzzlesOnTargetPosition(puzzle: Puzzle): Puzzle[] {
+    const puzzlesSet: Set<number> = new Set<number>();
+
+    const adjacentPuzzles: Puzzle[] = puzzle.Pieces.flatMap(piece => {
+      const piecePuzzles: Puzzle[] = []
+      if (piece.Left && !puzzlesSet.has(piece.Left.Parent.Id)) {
+        piecePuzzles.push(piece.Left.Parent);
+        puzzlesSet.add(piece.Left.Parent.Id);
+      }
+      if (piece.Top && !puzzlesSet.has(piece.Top.Parent.Id)) {
+        piecePuzzles.push(piece.Top.Parent);
+        puzzlesSet.add(piece.Top.Parent.Id);
+      }
+      if (piece.Right && !puzzlesSet.has(piece.Right.Parent.Id)) {
+        piecePuzzles.push(piece.Right.Parent);
+        puzzlesSet.add(piece.Right.Parent.Id);
+      }
+      if (piece.Bottom && !puzzlesSet.has(piece.Bottom.Parent.Id)) {
+        piecePuzzles.push(piece.Bottom.Parent);
+        puzzlesSet.add(piece.Bottom.Parent.Id);
+      }
+
+      return piecePuzzles;
+    });
+
+    return adjacentPuzzles.filter(puzzle => puzzle && puzzle.IsOnTargetPosition);
   }
 
   private findClosestPuzzle(puzzle: Puzzle): { distance: number, puzzle: Puzzle } {
