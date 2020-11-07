@@ -10,15 +10,13 @@ import Line = Phaser.Geom.Line;
 import Point = Phaser.Geom.Point;
 
 export default class DebugDrawer {
-    private static readonly GraphicsDepth = 10000;
-
     private readonly _debugGraphics: Phaser.GameObjects.Graphics;
 
     private _gameState: GameState;
 
     public constructor(objectFactory: ObjectFactory, gameState: GameState) {
-        this._debugGraphics = objectFactory.graphics(Config.DebugDrawing);
-        this._debugGraphics.setDepth(DebugDrawer.GraphicsDepth);
+        this._debugGraphics = objectFactory.graphics(Config.Debug.style);
+        this._debugGraphics.setDepth(Config.Depths.Debug);
 
         this._gameState = gameState;
 
@@ -39,7 +37,7 @@ export default class DebugDrawer {
     }
 
     private onDragEndPuzzle(): void {
-        if (!Config.DebugDrawing.enabled) {
+        if (!Config.Debug.enabled) {
             return;
         }
 
@@ -47,7 +45,7 @@ export default class DebugDrawer {
     }
 
     private drawTargetLines(puzzleId: number): void {
-        if (!Config.DebugDrawing.enabled) {
+        if (!Config.Debug.enabled) {
             return;
         }
 

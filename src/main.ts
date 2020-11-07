@@ -92,9 +92,11 @@ export default class Main extends Phaser.Scene {
   }
 
   private onPuzzleDrag(puzzleView: PuzzleView, eventDetails: PuzzleDragDetails): void {
+    const puzzle: Puzzle = this._gameState.Puzzles.find(puzzle => puzzle.Id == puzzleView.PuzzleId);
+
     switch (eventDetails.Event) {
       case 'end':
-        const isSuccess: boolean = this.onPuzzleDragEnd(puzzleView, eventDetails.Position);
+        const isSuccess: boolean = this.tryAutoPutPuzzle(puzzle, eventDetails.Position);
         this._soundFx.onPuzzleDragEnd(isSuccess);
         break;
       case 'start':
@@ -105,52 +107,55 @@ export default class Main extends Phaser.Scene {
     }
   }
 
-  private onPuzzleDragEnd(puzzleView: PuzzleView, newPosition: Point): boolean {
-    const puzzle: Puzzle = this._gameState.Puzzles.find(puzzle => puzzle.Id == puzzleView.PuzzleId);
+  private tryAutoPutPuzzle(puzzle: Puzzle, newPosition: Point): boolean {
     const distanceToTargetPosition: number = Distance.BetweenPoints(puzzle.TargetPosition, newPosition);
 
     if (distanceToTargetPosition < Config.MinDistanceToAutoPut) {
-      const adjacentPuzzles: Puzzle[] = this.findAllAdjacentPuzzlesOnTargetPosition(puzzle);
-      if (adjacentPuzzles.length > 0) {
-        adjacentPuzzles.push(puzzle);
-        const mergedPuzzle: Puzzle = this.mergePuzzles(adjacentPuzzles);
-        mergedPuzzle.putOnTargetPosition();
-      }
-      else {
-        puzzle.putOnTargetPosition();
-      }
-
-      return true;
-    }
-    else {
-      const { distance, puzzle: closestPuzzle } = this.findClosestPuzzle(puzzle);
-      if (distance < Config.MinDistanceToAutoPut) {
-        const mustBeAtTargetPosition: boolean = closestPuzzle.IsOnTargetPosition;
-        const closestPuzzlePosition: Point = closestPuzzle.View.getPosition();
-        const closestPuzzleTargetPosition: Point = closestPuzzle.TargetPosition;
-
-        const mergedPuzzle: Puzzle = this.mergePuzzles([puzzle, closestPuzzle]);
-
-        const positionShift: Point = new Point(
-          closestPuzzleTargetPosition.x - mergedPuzzle.TargetPosition.x,
-          closestPuzzleTargetPosition.y - mergedPuzzle.TargetPosition.y);
-        const newPosition: Point = new Point(
-          closestPuzzlePosition.x - positionShift.x,
-          closestPuzzlePosition.y - positionShift.y
-        );
-
-        if (mustBeAtTargetPosition) {
-          mergedPuzzle.putOnTargetPosition();
-        } else {
-          mergedPuzzle.View.setPosition(newPosition);
-        }
-
-
-        return true;
-      }
+      return this.putPuzzleOnTargetPosition(puzzle);
     }
 
-    return false;
+    const { distance, puzzle: closestPuzzle } = this.findClosestPuzzle(puzzle);
+    if (distance > Config.MinDistanceToAutoPut) {
+      return false;
+    }
+
+    if (closestPuzzle.IsOnTargetPosition) {
+      return this.putPuzzleOnTargetPosition(puzzle);
+    }
+
+    return this.mergeNotFixedPuzzles(puzzle, closestPuzzle);
+  }
+
+  private mergeNotFixedPuzzles(puzzle: Puzzle, closestPuzzle: Puzzle): boolean {
+    const closestPuzzlePosition: Point = closestPuzzle.View.getPosition();
+    const closestPuzzleTargetPosition: Point = closestPuzzle.TargetPosition;
+
+    const mergedPuzzle: Puzzle = this.mergePuzzles([puzzle, closestPuzzle]);
+
+    const positionShift: Point = new Point(
+      closestPuzzleTargetPosition.x - mergedPuzzle.TargetPosition.x,
+      closestPuzzleTargetPosition.y - mergedPuzzle.TargetPosition.y);
+    const newPosition: Point = new Point(
+      closestPuzzlePosition.x - positionShift.x,
+      closestPuzzlePosition.y - positionShift.y
+    );
+
+    mergedPuzzle.View.setPosition(newPosition);
+
+    return true;
+  }
+
+  private putPuzzleOnTargetPosition(puzzle: Puzzle): boolean {
+    const adjacentPuzzles: Puzzle[] = this.findAllAdjacentPuzzlesOnTargetPosition(puzzle);
+
+    if (adjacentPuzzles.length > 0) {
+      adjacentPuzzles.push(puzzle);
+      puzzle = this.mergePuzzles(adjacentPuzzles);
+    }
+
+    puzzle.putOnTargetPosition();
+
+    return true;
   }
 
   private mergePuzzles(puzzles: Puzzle[]): Puzzle {

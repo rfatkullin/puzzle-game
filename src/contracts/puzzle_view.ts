@@ -47,11 +47,9 @@ export default class PuzzleView {
 
     public onDragStart() {
         this.setDepth(Config.Depths.OnDragPuzzle);
-        this.startZoomInAnimation();
     }
 
     public onDragEnd() {
-        this.startZoomOutAnimation();
         this.setDepth(Config.Depths.OnFieldPuzzle);
     }
 
@@ -69,19 +67,6 @@ export default class PuzzleView {
 
     public onTargetPosition(): void {
         this.setDepth(Config.Depths.OnTargetPositionPuzzle)
-    }
-
-    private startZoomInAnimation(): void {
-        PuzzleView.startScaleOutTween(this.MainSprite, this._tweensManager);
-        PuzzleView.startScaleOutTween(this.ShadowSprite, this._tweensManager);
-    }
-
-    private startZoomOutAnimation(): void {
-        this._tweensManager.killTweensOf(this.MainSprite);
-        this._tweensManager.killTweensOf(this.ShadowSprite);
-
-        PuzzleView.startScaleInTween(this.MainSprite, this._tweensManager);
-        PuzzleView.startScaleInTween(this.ShadowSprite, this._tweensManager);
     }
 
     private setDepth(depth: number): void {

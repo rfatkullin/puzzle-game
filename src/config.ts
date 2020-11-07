@@ -12,20 +12,17 @@ export default class Config {
     public static readonly PuzzleShadowAlpha: number = 0.6;
     public static readonly PuzzleShadowOffset: number = 3;
 
-    // Puzzle Animation
-    public static readonly PuzzleScaleOnOver: number = 1.2;
-    public static readonly PuzzleScalingOutAnimzationDuration: number = 100;
-    public static readonly PuzzleScalingInAnimzationDuration: number = 300;
-    public static readonly PuzzleScalingOutAnimzationEase: string = 'Cubic.Out';
-    public static readonly PuzzleScalingInAnimzationEase: string = 'Linear';
+    public static Animation = {
+        Menu: {
+            MouseOverDuration: 100,
+            MouseOverEase: 'Linear'
+        }
+    }
 
     public static readonly MinDistanceToAutoPut: number = 20;
 
     public static readonly FieldShadowAlpha: number = 0.2;
     public static readonly FieldShadowTint: number = 0x00E819;
-
-    // Debug
-    public static readonly DebugLineStyle = { width: 2, color: 0xffffff };
 
     public static readonly Tints = {
         Menu: {
@@ -52,15 +49,21 @@ export default class Config {
         OnTargetPositionPuzzle: 2,
         OnFieldPuzzle: 10,
         OnDragPuzzle: 20,
-        Menu: 30
+        Menu: 30,
+        Debug: 100
     };
 
     public static readonly Sound = {
         enabled: true
     };
 
-    public static readonly DebugDrawing = {
+    public static readonly Debug = {
         enabled: false,
-        lineStyle: Config.DebugLineStyle
+        style: {
+            lineStyle: {
+                width: 2,
+                color: 0xffffff
+            }
+        }
     };
 }

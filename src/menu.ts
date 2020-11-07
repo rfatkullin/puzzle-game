@@ -8,7 +8,7 @@ export default class Menu {
     private readonly _tweensManager: Phaser.Tweens.TweenManager;
     private readonly _soundFx: SoundFx;
 
-    public constructor(factory: Phaser.GameObjects.GameObjectFactory, 
+    public constructor(factory: Phaser.GameObjects.GameObjectFactory,
         tweensManager: Phaser.Tweens.TweenManager,
         soundFx: SoundFx) {
         this._factory = factory;
@@ -48,8 +48,8 @@ export default class Menu {
         soundButton.on('pointerover', () => this.startScaleOutTween(soundButton,
             Config.Scales.Menu.SoundButton,
             Config.Scales.Menu.SoundButtonAnimated));
-            soundButton.on('pointerout', () => this.startScaleInTween(soundButton, Config.Scales.Menu.SoundButton));
-            soundButton.on('pointerdown', () => {
+        soundButton.on('pointerout', () => this.startScaleInTween(soundButton, Config.Scales.Menu.SoundButton));
+        soundButton.on('pointerdown', () => {
             Config.Sound.enabled = !Config.Sound.enabled;
             this.setSoundButtonTint(soundButton);
             this._soundFx.setMute();
@@ -61,8 +61,8 @@ export default class Menu {
             Config.Scales.Menu.HelpButtonAnimated));
         helpButton.on('pointerout', () => this.startScaleInTween(helpButton, Config.Scales.Menu.HelpButton));
         helpButton.on('pointerdown', () => {
-            Config.DebugDrawing.enabled = !Config.DebugDrawing.enabled;
-            this.setHelpButtonTint(helpButton);            
+            Config.Debug.enabled = !Config.Debug.enabled;
+            this.setHelpButtonTint(helpButton);
         });
         this.setHelpButtonTint(helpButton);
 
@@ -79,7 +79,7 @@ export default class Menu {
     }
 
     private setHelpButtonTint(button: Image): void {
-        button.setTint(Config.DebugDrawing.enabled ? 0xFFFFFF : Config.Tints.Menu.HelpButton);
+        button.setTint(Config.Debug.enabled ? 0xFFFFFF : Config.Tints.Menu.HelpButton);
     }
 
     private setSoundButtonTint(button: Image): void {
@@ -90,8 +90,8 @@ export default class Menu {
         this._tweensManager.add({
             targets: sprite,
             scale: { from: startScale, to: endScale },
-            ease: Config.PuzzleScalingOutAnimzationEase,
-            duration: 200
+            ease: Config.Animation.Menu.MouseOverEase,
+            duration: Config.Animation.Menu.MouseOverDuration
         });
     }
 
@@ -99,8 +99,8 @@ export default class Menu {
         this._tweensManager.add({
             targets: sprite,
             scale: { from: sprite.scale, to: endScale },
-            ease: Config.PuzzleScalingInAnimzationEase,
-            duration: 200
+            ease: Config.Animation.Menu.MouseOverEase,
+            duration: Config.Animation.Menu.MouseOverDuration
         });
     }
 }
