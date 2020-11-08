@@ -2,6 +2,7 @@ import Config from "../config";
 import SoundFx from "../fx/sound_fx";
 
 import Image = Phaser.GameObjects.Image;
+import Point = Phaser.Geom.Point;
 
 export default class Menu {
     private readonly _factory: Phaser.GameObjects.GameObjectFactory;
@@ -76,6 +77,52 @@ export default class Menu {
         showButton.on('pointerup', () => {
             miniImage.setVisible(false);
         });
+    }
+
+    public showCongrats(): void {
+        const sparks: string[] = ["spark0", "spark1", "spark2", "spark3"];
+        const positions: Point[] = [
+            new Point(100, 100),
+            new Point(Config.CanvasWidth - 100, 100),
+            new Point(Config.CanvasWidth - 100, Config.CanvasHeight - 100),
+            new Point(100, Config.CanvasHeight - 100),
+        ]
+
+        for (let i: number = 0; i < 4; ++i) {
+            const particles = this._factory.particles(sparks[i]);
+            particles.setDepth(100);
+
+            const emitter = particles.createEmitter({
+                x: positions[i].x,
+                y: positions[i].y,
+                speed: 200,
+                angle: { min: 0, max: 360 },
+                scale: { start: 1.0, end: 0 },
+                blendMode: Phaser.BlendModes.SCREEN,
+                lifespan: 2000,
+
+            });
+        }
+
+        const text = this._factory.text(0, 0, "Bingo!", {
+            fontFamily: 'Courier',
+            color: '#ffffff',
+            stroke: '#000000',
+            strokeThickness: 10,
+            fontSize: '100px',
+            shadow: {
+                offsetX: 0,
+                offsetY: 0,
+                color: '#000',
+                blur: 0,
+                stroke: false,
+                fill: false
+            },
+        });
+
+        text.setOrigin(0.5, 0.5);
+        text.setPosition(Config.CanvasWidth / 2, Config.CanvasHeight / 2);
+        text.setDepth(500);
     }
 
     private setHelpButtonTint(button: Image): void {

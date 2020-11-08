@@ -9,6 +9,11 @@ import showButtonIcon from "./assets/icons/picture.png";
 import helpButtonIcon from "./assets/icons/help.png";
 import soundButtonIcon from "./assets/icons/sound.png";
 
+import spark0 from "./assets/particles/spark0.png";
+import spark1 from "./assets/particles/spark1.png";
+import spark2 from "./assets/particles/spark2.png";
+import spark3 from "./assets/particles/spark3.png";
+
 import clickSound from "./assets/sound/click.wav";
 import fittedClickSound from "./assets/sound/fitted_click.wav";
 
@@ -63,6 +68,11 @@ export default class Main extends Phaser.Scene {
     this.load.image("helpButton", helpButtonIcon);
     this.load.image("soundButton", soundButtonIcon);
 
+    this.load.image("spark0", spark0);
+    this.load.image("spark1", spark1);
+    this.load.image("spark2", spark2);
+    this.load.image("spark3", spark3);
+
     this.load.audio('click', clickSound);
     this.load.audio('fitted_click', fittedClickSound);
   }
@@ -98,6 +108,11 @@ export default class Main extends Phaser.Scene {
       case 'end':
         const isSuccess: boolean = this.tryAutoPutPuzzle(puzzle, eventDetails.Position);
         this._soundFx.onPuzzleDragEnd(isSuccess);
+
+        const isGameFinished: boolean = this._gameState.Puzzles.every(puzzle => puzzle.IsOnTargetPosition);
+        if (isGameFinished) {
+          this._menu.showCongrats();
+        }
         break;
       case 'start':
         this._soundFx.onPuzzleDrag();
@@ -304,7 +319,7 @@ export default class Main extends Phaser.Scene {
 }
 
 const config = {
-  type: Phaser.AUTO,
+  type: Phaser.WEBGL,
   parent: "phaser-example",
   width: Config.CanvasWidth,
   height: Config.CanvasHeight,
