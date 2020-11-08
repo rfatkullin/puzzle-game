@@ -2,9 +2,8 @@ import { ELockType } from "../contracts/lock/puzzle_elock_type";
 import Config from "../config";
 
 import Point = Phaser.Geom.Point;
-import PuzzlePiece from "../contracts/puzzle_piece";
+import PuzzlePiece from "..//puzzle/puzzle_piece";
 import PuzzleLocks from "../contracts/lock/puzzle_locks";
-import PuzzleLock from "../contracts/lock/puzzle_lock";
 
 export default class PuzzleTextureMaker {
     private readonly _sizeOfInnerPartOfPiece: number = Config.InnerQuadSize;

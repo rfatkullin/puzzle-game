@@ -1,7 +1,7 @@
 import Config from "../config";
 import PuzzleDragDetails from "../contracts/events/puzzle_drag_details";
 import GameState from "../contracts/game_state";
-import Puzzle from "../contracts/puzzle";
+import Puzzle from "../puzzle";
 import PuzzlePiece from "../contracts/puzzle_piece";
 import PuzzleView from "../contracts/puzzle_view";
 

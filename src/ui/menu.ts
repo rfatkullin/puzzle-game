@@ -1,5 +1,5 @@
-import Config from "./config";
-import SoundFx from "./fx/sound_fx";
+import Config from "../config";
+import SoundFx from "../fx/sound_fx";
 
 import Image = Phaser.GameObjects.Image;
 

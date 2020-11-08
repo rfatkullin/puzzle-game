@@ -1,10 +1,10 @@
 import Config from "../config";
 import { ELockType } from "../contracts/lock/puzzle_elock_type";
 import PuzzleLock from "../contracts/lock/puzzle_lock";
-import Puzzle from "../contracts/puzzle";
-import PuzzlePiece from "../contracts/puzzle_piece";
+import Puzzle from "../puzzle/puzzle";
+import PuzzlePiece from "../puzzle/puzzle_piece";
 import PuzzlePieceOrigin from "../contracts/puzzle_piece_origin";
-import PuzzleView from "../contracts/puzzle_view";
+import PuzzleView from "../puzzle/puzzle_view";
 import PuzzleTextureMaker from "./puzzle_texture_maker";
 import PuzzleViewMaker from "./puzzle_view_maker";
 

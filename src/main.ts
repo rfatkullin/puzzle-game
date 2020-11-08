@@ -13,13 +13,13 @@ import clickSound from "./assets/sound/click.wav";
 import fittedClickSound from "./assets/sound/fitted_click.wav";
 
 import PuzzleFieldMaker from "./field/game_field_maker";
-import Puzzle from "./contracts/puzzle";
+import Puzzle from "./puzzle/puzzle";
 import PuzzleTextureMaker from "./view/puzzle_texture_maker";
 import Config from "./config";
 import PuzzleViewMaker from "./view/puzzle_view_maker";
 import GameField from "./field/game_field";
 import SoundFx from './fx/sound_fx';
-import PuzzleView from "./contracts/puzzle_view";
+import PuzzleView from "./puzzle/puzzle_view";
 import PuzzleDragDetails from "./contracts/events/puzzle_drag_details";
 import PuzzlePieceOrigin from "./contracts/puzzle_piece_origin";
 import PuzzleMaker from "./view/puzzle_maker";
@@ -29,7 +29,7 @@ import DebugDrawer from "./debug/debug_drawer";
 import Point = Phaser.Geom.Point;
 import Distance = Phaser.Math.Distance;
 import GameState from "./contracts/game_state";
-import Menu from "./menu";
+import Menu from "./ui/menu";
 
 export default class Main extends Phaser.Scene {
 

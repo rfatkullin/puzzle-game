@@ -1,5 +1,5 @@
 import Config from "../config";
-import PuzzleView from "../contracts/puzzle_view";
+import PuzzleView from "../puzzle/puzzle_view";
 
 import { IEvent, EventDispatcher } from "strongly-typed-events";
 

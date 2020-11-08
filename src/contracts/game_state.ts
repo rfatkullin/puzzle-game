@@ -1,4 +1,4 @@
-import Puzzle from "./puzzle";
+import Puzzle from "../puzzle";
 
 export default class GameState {
     
