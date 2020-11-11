@@ -3,7 +3,6 @@ import Phaser from "phaser";
 import targetImage from "./assets/target.png";
 import fieldShadowImage from "./assets/field_shadow.png";
 import patternsAtlasSourceImage from "./assets/patterns_atlas.png";
-import backgroundImage from "./assets/background.jpg";
 
 import showButtonIcon from "./assets/icons/picture.png";
 import helpButtonIcon from "./assets/icons/help.png";
@@ -60,7 +59,6 @@ export default class Main extends Phaser.Scene {
 
   private preload() {
     this.load.image("target", targetImage);
-    this.load.image("background", backgroundImage);
     this.load.image("patterns_atlas", patternsAtlasSourceImage);
     this.load.image("field_shadow", fieldShadowImage);
 
@@ -291,10 +289,7 @@ export default class Main extends Phaser.Scene {
   private create() {
     this.initSubsystems();
 
-    this.add.image(0, 0, 'background')
-      .setOrigin(0, 0)
-      .setAlpha(0.5)
-      .setDepth(Config.Depths.Background);
+    this.cameras.main.setBackgroundColor(Config.Background.Color);
 
     this._menu.show();
 
@@ -318,13 +313,28 @@ export default class Main extends Phaser.Scene {
   }
 }
 
-const config = {
-  type: Phaser.WEBGL,
-  parent: "phaser-example",
-  width: Config.CanvasWidth,
-  height: Config.CanvasHeight,
-  scene: [Main],
-  transparent: true
-};
+function initConfigsAndStartScene() {
+  const screenWidth = window.innerWidth
+    || document.documentElement.clientWidth
+    || document.body.clientWidth;
 
-const game = new Phaser.Game(config);
+  const screenHeight = window.innerHeight
+    || document.documentElement.clientHeight
+    || document.body.clientHeight;
+
+  Config.CanvasWidth = screenWidth - 20;
+  Config.CanvasHeight = screenHeight - 20;
+
+  const config = {
+    type: Phaser.WEBGL,
+    parent: "phaser-example",
+    width: Config.CanvasWidth,
+    height: Config.CanvasHeight,
+    scene: [Main],
+    transparent: true
+  };
+
+  new Phaser.Game(config);
+}
+
+initConfigsAndStartScene();

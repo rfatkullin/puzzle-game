@@ -1,6 +1,6 @@
 export default class Config {
-    public static readonly CanvasWidth: number = 800;
-    public static readonly CanvasHeight: number = 600;
+    public static CanvasWidth: number = 800;
+    public static CanvasHeight: number = 600;
 
     public static readonly InnerQuadSize: number = 50;
     public static readonly BorderSize: number = 10;
@@ -24,6 +24,10 @@ export default class Config {
     public static readonly FieldShadowAlpha: number = 0.2;
     public static readonly FieldShadowTint: number = 0x00E819;
 
+    public static readonly Background = {
+        Color: 0xDBDBDB
+    };
+    
     public static readonly Tints = {
         Menu: {
             HelpButton: 0xCCCCCC,
