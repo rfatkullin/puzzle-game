@@ -313,17 +313,11 @@ export default class Main extends Phaser.Scene {
   }
 }
 
-function initConfigsAndStartScene() {
-  const screenWidth = window.innerWidth
-    || document.documentElement.clientWidth
-    || document.body.clientWidth;
+function startScene() {
+  const viewportSize = Config.getViewportSize();
 
-  const screenHeight = window.innerHeight
-    || document.documentElement.clientHeight
-    || document.body.clientHeight;
-
-  Config.CanvasWidth = screenWidth - 20;
-  Config.CanvasHeight = screenHeight - 20;
+  Config.CanvasWidth = viewportSize.width - 20;
+  Config.CanvasHeight = viewportSize.height - 20;
 
   const config = {
     type: Phaser.WEBGL,
@@ -331,10 +325,16 @@ function initConfigsAndStartScene() {
     width: Config.CanvasWidth,
     height: Config.CanvasHeight,
     scene: [Main],
-    transparent: true
+    transparent: true,
+    scale: {
+      mode: Phaser.Scale.WIDTH_CONTROLS_HEIGHT,
+      autoCenter: Phaser.Scale.CENTER_BOTH,
+       width: Config.CanvasWidth,
+       height: Config.CanvasHeight
+    }
   };
 
   new Phaser.Game(config);
 }
 
-initConfigsAndStartScene();
+startScene();

@@ -27,7 +27,7 @@ export default class Config {
     public static readonly Background = {
         Color: 0xDBDBDB
     };
-    
+
     public static readonly Tints = {
         Menu: {
             HelpButton: 0xCCCCCC,
@@ -70,4 +70,19 @@ export default class Config {
             }
         }
     };
+
+    public static getViewportSize(): { width: number, height: number } {
+        const screenWidth = window.innerWidth
+            || document.documentElement.clientWidth
+            || document.body.clientWidth;
+
+        const screenHeight = window.innerHeight
+            || document.documentElement.clientHeight
+            || document.body.clientHeight;
+
+        return {
+            width: screenWidth,
+            height: screenHeight
+        };
+    }
 }
