@@ -1,4 +1,4 @@
-import Config from "../config";
+import Config from "../configs/config";
 
 import Point = Phaser.Geom.Point;
 

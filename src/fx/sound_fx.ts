@@ -1,4 +1,4 @@
-import Config from "../config";
+import Config from "../configs/config";
 
 export default class SoundFx {
     private readonly _soundManager: Phaser.Sound.BaseSoundManager;

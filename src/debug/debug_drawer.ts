@@ -1,4 +1,4 @@
-import Config from "../config";
+import Config from "../configs/config";
 import PuzzleDragDetails from "../contracts/events/puzzle_drag_details";
 import GameState from "../contracts/game_state";
 import Puzzle from "../puzzle";

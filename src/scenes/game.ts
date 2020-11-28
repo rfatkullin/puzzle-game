@@ -19,7 +19,7 @@ import fittedClickSound from "../assets/sound/fitted_click.wav";
 import PuzzleFieldMaker from "../field/game_field_maker";
 import Puzzle from "../puzzle/puzzle";
 import PuzzleTextureMaker from "../view/puzzle_texture_maker";
-import Config from "../config";
+import Config from "../configs/config";
 import PuzzleViewMaker from "../view/puzzle_view_maker";
 import GameField from "../field/game_field";
 import SoundFx from '../fx/sound_fx';
@@ -35,7 +35,7 @@ import Distance = Phaser.Math.Distance;
 import GameState from "../contracts/game_state";
 import Menu from "../ui/menu";
 
-export default class Main extends Phaser.Scene {
+export default class Game extends Phaser.Scene {
 
   private _debugDrawer: DebugDrawer;
   private _puzzleViewMaker: PuzzleViewMaker;
@@ -48,8 +48,10 @@ export default class Main extends Phaser.Scene {
 
   private _gameState: GameState;
 
-  public constructor(config) {
-    super(config);
+  public constructor() {
+    super({
+      key: 'game'
+    });
 
     this.runGame = this.runGame.bind(this);
     this.onPuzzleDrag = this.onPuzzleDrag.bind(this);

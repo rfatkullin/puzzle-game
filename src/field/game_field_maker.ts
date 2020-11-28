@@ -1,4 +1,4 @@
-import Config from "../config";
+import Config from "../configs/config";
 import PuzzlePieceOrigin from "../contracts/puzzle_piece_origin";
 import { ELockType } from "../contracts/lock/puzzle_elock_type";
 import PuzzleLocks from "../contracts/lock/puzzle_locks";

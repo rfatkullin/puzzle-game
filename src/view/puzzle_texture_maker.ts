@@ -1,5 +1,5 @@
 import { ELockType } from "../contracts/lock/puzzle_elock_type";
-import Config from "../config";
+import Config from "../configs/config";
 
 import Point = Phaser.Geom.Point;
 import PuzzlePiece from "..//puzzle/puzzle_piece";

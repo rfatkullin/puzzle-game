@@ -1,4 +1,4 @@
-import Config from "../config";
+import Config from "../configs/config";
 import SoundFx from "../fx/sound_fx";
 
 import Image = Phaser.GameObjects.Image;

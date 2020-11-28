@@ -1,4 +1,4 @@
-import Config from "../config";
+import Config from "../configs/config";
 import PuzzleView from "../puzzle/puzzle_view";
 
 import { IEvent, EventDispatcher } from "strongly-typed-events";

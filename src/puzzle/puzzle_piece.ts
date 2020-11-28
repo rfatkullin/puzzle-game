@@ -1,4 +1,4 @@
-import Config from "../config";
+import Config from "../configs/config";
 import Puzzle from "./puzzle";
 import PuzzlePieceOrigin from "../contracts/puzzle_piece_origin";
 
