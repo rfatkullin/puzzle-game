@@ -1,34 +1,75 @@
 import Config from "../configs/config";
 
+import BaseSoundManager = Phaser.Sound.BaseSoundManager;
+import BaseSound = Phaser.Sound.BaseSound;
+
 export default class SoundFx {
-    private readonly _soundManager: Phaser.Sound.BaseSoundManager;
+    private readonly _soundManager: BaseSoundManager;
 
-    private readonly _clickSound: Phaser.Sound.BaseSound;
-    private readonly _fittedClickSound: Phaser.Sound.BaseSound;
+    private _clickSound: BaseSound;
+    private _fittedClickSound: BaseSound;
 
-    public constructor(newSoundManager: Phaser.Sound.BaseSoundManager) {
+    private _menuItemOverSound: BaseSound;
+    private _menuItemClick: BaseSound;
+
+    public constructor(newSoundManager: BaseSoundManager) {
         this._soundManager = newSoundManager;
-
-        this._clickSound = this._soundManager.add('click');
-        this._fittedClickSound = this._soundManager.add('fitted_click');
 
         this.setMute();
     }
 
     public onPuzzleDrag(): void {
-        this._clickSound.play();
+        this.getClickSound().play();
     }
 
     public onPuzzleDragEnd(success: boolean): void {
         if (success) {
-            this._fittedClickSound.play();
+            this.getFittedClickSound().play();
             return;
         }
 
-        this._clickSound.play();
+        this.getClickSound().play();
+    }
+
+    public onMenuItemOver(): void {
+        this.getMenuItemOverSound().play();
+    }
+
+    public onMenuItemClick(): void {
+        this.getMenuItemClickSound().play();
     }
 
     public setMute(): void {
         this._soundManager.mute = !Config.Sound.enabled;
+    }
+
+    private getClickSound(): BaseSound {
+        if (!this._clickSound) {
+            this._clickSound = this._soundManager.add('click');
+        }
+
+        return this._clickSound;
+    }
+    private getFittedClickSound(): BaseSound {
+        if (!this._fittedClickSound) {
+            this._fittedClickSound = this._soundManager.add('fitted_click');
+        }
+
+        return this._fittedClickSound;
+    }
+
+    private getMenuItemOverSound(): BaseSound {
+        if (!this._menuItemOverSound) {
+            this._menuItemOverSound = this._soundManager.add('menu_item_over');
+        }
+
+        return this._menuItemOverSound;
+    }
+    private getMenuItemClickSound(): BaseSound {
+        if (!this._menuItemClick) {
+            this._menuItemClick = this._soundManager.add('menu_item_click');
+        }
+
+        return this._menuItemClick;
     }
 }

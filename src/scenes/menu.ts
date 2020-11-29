@@ -1,17 +1,20 @@
 import Phaser from "phaser";
+
 import buttonAtlas from "../assets/ui/ui_buttons.png";
+
+import itemOverSound from "../assets/sounds/menu_item_over.wav";
+import itemClickSound from "../assets/sounds/menu_item_select.wav";
+
 import Config from "../configs/config";
 import MenuConfig from "../configs/menu_config";
+import SoundFx from "../fx/sound_fx";
 
 import Image = Phaser.GameObjects.Image;
 import FrameConfig = Phaser.Types.Loader.FileTypes.ImageFrameConfig;
 import Container = Phaser.GameObjects.Container;
 
 export default class Menu extends Phaser.Scene {
-    private readonly InputSettings = {
-        pixelPerfect: true,
-        alphaTolerance: 0
-    };
+    private _soundFx: SoundFx;
 
     constructor() {
         super({
@@ -29,9 +32,18 @@ export default class Menu extends Phaser.Scene {
         }
 
         this.load.spritesheet('buttons', buttonAtlas, frameConfig);
+
+        this.load.audio('menu_item_over', itemOverSound);
+        this.load.audio('menu_item_click', itemClickSound);
     }
 
     private create(): void {
+        this._soundFx = new SoundFx(this.sound);
+
+        this.createMenu();
+    }
+
+    private createMenu(): void {
         const menuContainer: Container = this.constructMenuContainer();
 
         const gameStartButton: Image = this.constructStartGameButton();
@@ -44,7 +56,7 @@ export default class Menu extends Phaser.Scene {
     }
 
     private startGame(): void {
-        this.scene.transition({ target: 'game', duration: 100 });
+        this.scene.transition({ target: 'gallery', duration: 100 });
     }
 
     private getButtonOffsetFromTop(index: number): number {
@@ -62,21 +74,21 @@ export default class Menu extends Phaser.Scene {
     }
 
     private constructStartGameButton(): Image {
-        const gameStartButton: Image = this.add.image(0, this.getButtonOffsetFromTop(0), 'buttons', 0);
+        const startButton: Image = this.add.image(0, this.getButtonOffsetFromTop(0), 'buttons', 0);
 
-        gameStartButton.setInteractive(this.InputSettings);
-        gameStartButton.on('pointerover', () => gameStartButton.setFrame(1));
-        gameStartButton.on('pointerout', () => gameStartButton.setFrame(0));
-        gameStartButton.on('pointerdown', this.startGame);
+        startButton.setInteractive(MenuConfig.InputSettings);
+        startButton.on('pointerover', () => this.onItemOver(startButton, 1));
+        startButton.on('pointerout', () => startButton.setFrame(0));
+        startButton.on('pointerdown', () => this.onItemClick(this.startGame));
 
-        return gameStartButton;
+        return startButton;
     }
 
     private constructTopButton(): Image {
         const topButton: Image = this.add.image(0, this.getButtonOffsetFromTop(1), 'buttons', 2);
 
-        topButton.setInteractive(this.InputSettings);
-        topButton.on('pointerover', () => topButton.setFrame(3));
+        topButton.setInteractive(MenuConfig.InputSettings);
+        topButton.on('pointerover', () => this.onItemOver(topButton, 3));
         topButton.on('pointerout', () => topButton.setFrame(2));
 
         return topButton;
@@ -85,10 +97,21 @@ export default class Menu extends Phaser.Scene {
     private constructEditorButton(): Image {
         const editorButton: Image = this.add.image(0, this.getButtonOffsetFromTop(2), 'buttons', 4);
 
-        editorButton.setInteractive(this.InputSettings);
-        editorButton.on('pointerover', () => editorButton.setFrame(5));
+        editorButton.setInteractive(MenuConfig.InputSettings);
+        editorButton.on('pointerover', () => this.onItemOver(editorButton, 5));
         editorButton.on('pointerout', () => editorButton.setFrame(4));
 
         return editorButton;
+    }
+
+    private onItemOver(button: Image, frameIndex: number): void {
+        button.setFrame(frameIndex);
+
+        this._soundFx.onMenuItemOver();
+    }
+
+    private onItemClick(action): void {
+        this._soundFx.onMenuItemClick();
+        action();
     }
 }

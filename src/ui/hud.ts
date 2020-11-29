@@ -1,17 +1,24 @@
 import Config from "../configs/config";
+import GameState from "../contracts/game_state";
 import SoundFx from "../fx/sound_fx";
 
 import Image = Phaser.GameObjects.Image;
 import Point = Phaser.Geom.Point;
+import Factory = Phaser.GameObjects.GameObjectFactory;
+import TweenManager = Phaser.Tweens.TweenManager;
 
-export default class Menu {
-    private readonly _factory: Phaser.GameObjects.GameObjectFactory;
-    private readonly _tweensManager: Phaser.Tweens.TweenManager;
+export default class Hud {
+    private readonly _factory: Factory;
+    private readonly _tweensManager: TweenManager;
     private readonly _soundFx: SoundFx;
+    private readonly _gameState: GameState;
 
-    public constructor(factory: Phaser.GameObjects.GameObjectFactory,
-        tweensManager: Phaser.Tweens.TweenManager,
+    public constructor(
+        gameState: GameState,
+        factory: Factory,
+        tweensManager: TweenManager,
         soundFx: SoundFx) {
+        this._gameState = gameState;
         this._factory = factory;
         this._tweensManager = tweensManager;
         this._soundFx = soundFx;
@@ -30,7 +37,7 @@ export default class Menu {
             .setScale(Config.Scales.Menu.ShowButton)
             .setDepth(Config.Depths.Menu);
 
-        const miniImage: Image = this._factory.image(0, 0, 'target')
+        const miniImage: Image = this._factory.image(0, 0, this._gameState.Target)
             .setOrigin(1.0, 0.0)
             .setPosition(showButton.x - 50, showButton.y)
             .setScale(Config.Scales.MiniTarget)

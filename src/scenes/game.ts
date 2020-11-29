@@ -1,6 +1,8 @@
 import Phaser from "phaser";
 
-import targetImage from "../assets/target.png";
+import birdImage from "../assets/targets/bird.png";
+import nightCityImage from "../assets/targets/night_city.png";
+
 import fieldShadowImage from "../assets/field_shadow.png";
 import patternsAtlasSourceImage from "../assets/patterns_atlas.png";
 
@@ -13,8 +15,8 @@ import spark1 from "../assets/particles/spark1.png";
 import spark2 from "../assets/particles/spark2.png";
 import spark3 from "../assets/particles/spark3.png";
 
-import clickSound from "../assets/sound/click.wav";
-import fittedClickSound from "../assets/sound/fitted_click.wav";
+import clickSound from "../assets/sounds/click.wav";
+import fittedClickSound from "../assets/sounds/fitted_click.wav";
 
 import PuzzleFieldMaker from "../field/game_field_maker";
 import Puzzle from "../puzzle/puzzle";
@@ -33,7 +35,7 @@ import DebugDrawer from "../debug/debug_drawer";
 import Point = Phaser.Geom.Point;
 import Distance = Phaser.Math.Distance;
 import GameState from "../contracts/game_state";
-import Menu from "../ui/menu";
+import Hud from "../ui/hud";
 
 export default class Game extends Phaser.Scene {
 
@@ -41,7 +43,7 @@ export default class Game extends Phaser.Scene {
   private _puzzleViewMaker: PuzzleViewMaker;
   private _puzzleTextureMaker: PuzzleTextureMaker;
   private _puzzleMaker: PuzzleMaker;
-  private _menu: Menu;
+  private _menu: Hud;
   private _soundFx: SoundFx;
 
   private _fieldStartPosition: Point;
@@ -60,7 +62,9 @@ export default class Game extends Phaser.Scene {
   }
 
   private preload() {
-    this.load.image("target", targetImage);
+    this.load.image("bird", birdImage);
+    this.load.image("night_city", nightCityImage);
+
     this.load.image("patterns_atlas", patternsAtlasSourceImage);
     this.load.image("field_shadow", fieldShadowImage);
 
@@ -77,13 +81,13 @@ export default class Game extends Phaser.Scene {
     this.load.audio('fitted_click', fittedClickSound);
   }
 
-  private loadImages(callback: (maskImg: HTMLImageElement, backgroundImage: HTMLImageElement) => void) {
+  private loadImages(target: string, callback: (maskImg: HTMLImageElement, backgroundImage: HTMLImageElement) => void) {
     const maskImg = new Image();
 
     maskImg.onload = () => {
       const backgroundImage = new Image();
       backgroundImage.onload = () => { callback(maskImg, backgroundImage); }
-      backgroundImage.src = this.textures.getBase64('target');
+      backgroundImage.src = this.textures.getBase64(target);
     };
 
     maskImg.src = this.textures.getBase64('patterns_atlas');
@@ -288,6 +292,10 @@ export default class Game extends Phaser.Scene {
       (Config.CanvasHeight - height) / 2);
   }
 
+  private init(data): void {
+    this._gameState.setTarget(data.target);
+  }
+
   private create() {
     this.initSubsystems();
 
@@ -295,7 +303,7 @@ export default class Game extends Phaser.Scene {
 
     this._menu.show();
 
-    this.loadImages(this.runGame);
+    this.loadImages(this._gameState.Target, this.runGame);
   }
 
   private initSubsystems(): void {
@@ -311,6 +319,6 @@ export default class Game extends Phaser.Scene {
 
     this._puzzleMaker = new PuzzleMaker(this._puzzleViewMaker, this._puzzleTextureMaker);
 
-    this._menu = new Menu(this.add, this.tweens, this._soundFx);
+    this._menu = new Hud(this._gameState, this.add, this.tweens, this._soundFx);
   }
 }

@@ -1,6 +1,7 @@
 import Game from "./scenes/game";
 import Config from "./configs/config";
 import Menu from "./scenes/menu";
+import Gallery from "./scenes/gallery";
 
 function startScene() {
   const viewportSize = Config.getViewportSize();
@@ -13,13 +14,13 @@ function startScene() {
     parent: "phaser-example",
     width: Config.CanvasWidth,
     height: Config.CanvasHeight,
-    scene: [Menu, Game],
+    scene: [Menu, Gallery, Game],
     transparent: true,
     scale: {
       mode: Phaser.Scale.WIDTH_CONTROLS_HEIGHT,
       autoCenter: Phaser.Scale.CENTER_BOTH,
-       width: Config.CanvasWidth,
-       height: Config.CanvasHeight
+      width: Config.CanvasWidth,
+      height: Config.CanvasHeight
     }
   };
 
