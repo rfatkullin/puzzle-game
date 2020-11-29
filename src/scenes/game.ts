@@ -96,7 +96,7 @@ export default class Game extends Phaser.Scene {
   private showFieldShadow(targetImageHtmlImage: HTMLImageElement): void {
     const { x, y } = this._fieldStartPosition;
 
-    const background: Phaser.GameObjects.Image = this.add.image(0, 0, 'field_shadow')
+    this.add.image(0, 0, 'field_shadow')
       .setOrigin(0, 0)
       .setPosition(x, y)
       .setScale(targetImageHtmlImage.width, targetImageHtmlImage.height)
@@ -299,7 +299,7 @@ export default class Game extends Phaser.Scene {
   private create() {
     this.initSubsystems();
 
-    this.cameras.main.setBackgroundColor(Config.Background.Color);
+    //this.cameras.main.setBackgroundColor(Config.Background.Color);
 
     this._menu.show();
 

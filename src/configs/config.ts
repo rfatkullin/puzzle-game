@@ -24,10 +24,6 @@ export default class Config {
     public static readonly FieldShadowAlpha: number = 0.2;
     public static readonly FieldShadowTint: number = 0x00E819;
 
-    public static readonly Background = {
-        Color: 0xDBDBDB
-    };
-
     public static readonly Tints = {
         Menu: {
             HelpButton: 0xCCCCCC,
